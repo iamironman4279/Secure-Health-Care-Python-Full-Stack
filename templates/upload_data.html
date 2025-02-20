@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Medical Data</title>
+</head>
+<body>
+    <h2>Upload Medical Data</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('upload') }}">
+
+        <label for="blood_group">Blood Group:</label>
+        <input type="text" name="blood_group" id="blood_group" required><br><br>
+
+        <label for="blood_pressure">Blood Pressure:</label>
+        <input type="text" name="blood_pressure" id="blood_pressure" required><br><br>
+
+        <label for="body_temp">Body Temperature:</label>
+        <input type="text" name="body_temp" id="body_temp" required><br><br>
+
+        <label for="pulse_rate">Pulse Rate:</label>
+        <input type="text" name="pulse_rate" id="pulse_rate" required><br><br>
+
+        <label for="medications">Medications:</label>
+        <textarea name="medications" id="medications" required></textarea><br><br>
+
+        <button type="submit">Upload</button>
+    </form>
+
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Medical Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        h2 {
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .alert {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Upload Medical Data</h2>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Upload Form -->
+    <form method="POST" action="{{ url_for('upload') }}">
+        <label for="blood_group">Blood Group:</label>
+        <input type="text" name="blood_group" id="blood_group" required>
+
+        <label for="blood_pressure">Blood Pressure:</label>
+        <input type="text" name="blood_pressure" id="blood_pressure" required>
+
+        <label for="body_temp">Body Temperature:</label>
+        <input type="text" name="body_temp" id="body_temp" required>
+
+        <label for="pulse_rate">Pulse Rate:</label>
+        <input type="text" name="pulse_rate" id="pulse_rate" required>
+
+        <label for="medications">Medications:</label>
+        <textarea name="medications" id="medications" required></textarea>
+
+        <button type="submit">Upload</button>
+    </form>
+
+    <br>source venv/bin/activate
+
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+
+</body>
+</html>

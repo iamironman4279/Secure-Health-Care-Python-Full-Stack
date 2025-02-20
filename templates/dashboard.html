@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Navbar Styling */
+        nav {
+            background-color: #4caf50;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            flex-wrap: wrap;
+        }
+
+        nav h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #dcedc8;
+        }
+
+        /* Container Styling */
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background-color: #fff;
+            padding: 20px;
+            margin: 30px auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h3 {
+            color: #4caf50;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        strong {
+            color: #333;
+        }
+
+        /* Status Badge */
+        .status-active {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            color: orange;
+            font-weight: bold;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            nav {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            nav a {
+                margin: 10px 0;
+            }
+
+            h3 {
+                font-size: 20px;
+            }
+
+            p {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <h2>Patient Dashboard</h2>
+        <div>
+            <a href="{{ url_for('upload') }}">Upload Medical Data</a>
+            <a href="{{ url_for('decrypt_key') }}">View Medical Data</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h3>Welcome, {{ patient.name or 'Patient' }}</h3>
+        <p><strong>Patient ID:</strong> {{ patient.id or 'N/A' }}</p>
+        <p><strong>Email:</strong> {{ patient.email or 'N/A' }}</p>
+        <p><strong>Phone:</strong> {{ patient.phone or 'N/A' }}</p>
+        <p><strong>Status:</strong>
+            {% if patient.is_activated %}
+                <span class="status-active">Activated</span>
+            {% else %}
+                <span class="status-pending">Pending Activation</span>
+            {% endif %}
+        </p>
+    </div>
+</body>
+</html>
