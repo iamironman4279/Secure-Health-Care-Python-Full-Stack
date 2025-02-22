@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Server Dashboard</title>
+    <style>
+        :root {
+            --primary-green: #2e7d32;
+            --light-green: #4caf50;
+            --dark-green: #1b5e20;
+            --hover-green: #388e3c;
+            --bg-green: #e8f5e9;
+            --text-green: #1b5e20;
+            --white: #ffffff;
+            --skeleton-bg: #e0e0e0;
+            --skeleton-shine: #f5f5f5;
+            --danger-red: #e53935;
+            --table-border: #a5d6a7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: var(--bg-green);
+        }
+
+        .nav-container {
+            background: var(--primary-green);
+            padding: 1rem;
+            position: fixed;
+            width: 250px;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            padding: 0.8rem 1rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: var(--hover-green);
+        }
+
+        .nav-links a.active {
+            background: var(--light-green);
+        }
+
+        .logout-btn {
+            position: absolute;
+            bottom: 2rem;
+            left: 1rem;
+            right: 1rem;
+            padding: 0.8rem;
+            background: var(--dark-green);
+            color: var(--white);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: var(--text-green);
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        .section {
+            display: none;
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-green);
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section h2 {
+            margin-bottom: 1rem;
+            color: var(--text-green);
+            border-bottom: 2px solid var(--light-green);
+            padding-bottom: 0.5rem;
+        }
+
+        .section p {
+            color: var(--text-green);
+            line-height: 1.6;
+        }
+
+        /* Skeleton Loading Styles */
+        .skeleton-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--white);
+            z-index: 1000;
+            display: flex;
+        }
+
+        .skeleton-nav {
+            width: 250px;
+            height: 100vh;
+            background: var(--skeleton-bg);
+            padding: 1rem;
+        }
+
+        .skeleton-content {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .skeleton-item {
+            height: 40px;
+            background: var(--skeleton-bg);
+            margin: 1rem 0;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-card {
+            height: 200px;
+            background: var(--skeleton-bg);
+            margin: 2rem 0;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-item::after,
+        .skeleton-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0,
+                rgba(255, 255, 255, 0.2) 20%,
+                rgba(255, 255, 255, 0.5) 60%,
+                rgba(255, 255, 255, 0)
+            );
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: var(--white);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid var(--table-border);
+            padding: 12px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: var(--primary-green);
+            color: var(--white);
+            font-weight: 500;
+        }
+
+        .data-table tr:nth-child(even) {
+            background-color: var(--bg-green);
+        }
+
+        .data-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--white);
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-activate {
+            background-color: var(--light-green);
+        }
+
+        .btn-deactivate {
+            background-color: var(--danger-red);
+        }
+
+        .flash {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .flash.success {
+            background-color: var(--light-green);
+            color: var(--white);
+        }
+
+        .flash.error {
+            background-color: var(--danger-red);
+            color: var(--white);
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.loaded {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .content {
+                margin-left: 0;
+            }
+
+            .logout-btn {
+                position: relative;
+                margin-top: 1rem;
+                left: 0;
+                right: 0;
+            }
+
+            .section {
+                margin-top: 1rem;
+            }
+
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .data-table th,
+            .data-table td {
+                white-space: nowrap;
+            }
+        }
+    </style>
+
+    <script>
+        window.onload = function() {
+            setTimeout(() => {
+                document.querySelector('.skeleton-loading').style.display = 'none';
+                document.querySelector('.main-content').classList.add('loaded');
+            }, 1500);
+        }
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function logout() {
+            alert('Logging out...');
+            // Add your logout logic here
+        }
+    </script>
+</head>
+<body>
+    <!-- Skeleton Loading -->
+    <div class="skeleton-loading">
+        <div class="skeleton-nav">
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+        </div>
+        <div class="skeleton-content">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="#" onclick="showSection('home')" class="active">Home</a>
+                <a href="#" onclick="showSection('patients-activation')">Patients Activation</a>
+                <a href="#" onclick="showSection('doctors-activation')">Doctors Activation</a>
+                <a href="#" onclick="showSection('patients')">Patients</a>
+                <a href="#" onclick="showSection('doctors')">Doctors</a>
+                <a href="#" onclick="showSection('files')">Files</a>
+                <a href="#" onclick="showSection('assign-doctors')">Assign Doctors</a>
+                <a href="#" onclick="showSection('doctor-request')">Doctor Request</a>
+                <a href="#" onclick="showSection('graph')">Graph</a>
+            </div>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="content">
+            <section id="home" class="section active">
+                <h2>Home</h2>
+                <p>Welcome to the Cloud Server Dashboard</p>
+            </section>
+            <section id="patients" class="section">
+                <h2>Manage Patients</h2>
+            
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            
+                
+            
+                <!-- Patients Table -->
+                <h3>All Patients</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                        <tr>
+                            <td>{{ patient.patient_id }}</td>
+                            <td>{{ patient.name }}</td>
+                            <td>{{ patient.email }}</td>
+                            <td>{{ patient.phone }}</td>
+                            <td>{{ patient.address }}</td>
+                            
+                            <td>
+                                <style>
+                                    button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        background-color: #28a745; /* Green */
+        transition: background-color 0.3s ease;
+    }
+
+    /* Hover Effect for Both Buttons */
+    button:hover {
+        background-color: #218838; /* Darker Green on Hover */
+    }
+                                    /* Style for Input Fields */
+                                    input[type="text"],
+                                    input[type="email"],
+                                    input[type="tel"],
+                                    input[type="hidden"],
+                                    textarea {
+                                        width: 100%;
+                                        padding: 10px;
+                                        margin: 8px 0;
+                                        box-sizing: border-box;
+                                        border: 1px solid #ccc;
+                                        border-radius: 4px;
+                                        font-size: 14px;
+                                        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+                                    }
+                                
+                                    /* Focus Effect */
+                                    input[type="text"]:focus,
+                                    input[type="email"]:focus,
+                                    input[type="tel"]:focus,
+                                    textarea:focus {
+                                        border-color: #28a745; /* Green Border */
+                                        box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+                                        outline: none;
+                                    }
+                                
+                                    /* Styling for Hidden Inputs (Optional) */
+                                    input[type="hidden"] {
+                                        display: none;
+                                    }
+                                
+                                    /* Textarea Specific */
+                                    textarea {
+                                        resize: vertical;
+                                        min-height: 100px;
+                                    }
+                                </style>
+                                
+                                
+                                
+                                <!-- Update -->
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="action" value="update">
+                                    <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+                                    <button type="button" onclick="populateUpdateForm('{{ patient.patient_id }}', '{{ patient.name }}', '{{ patient.email }}', '{{ patient.phone }}', '{{ patient.address }}')">Update</button>
+                                </form>
+            
+                                <!-- Delete -->
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this patient?');">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            
+                <!-- Update Patient Form (Hidden by default) -->
+                <div id="updateForm" style="display:none;">
+                    <h3>Update Patient</h3>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="update">
+                        <input type="hidden" id="update_patient_id" name="patient_id">
+            
+                        <input type="text" id="update_name" name="name" placeholder="Name" required>
+                        <input type="email" id="update_email" name="email" placeholder="Email" required>
+                        <input type="text" id="update_phone" name="phone" placeholder="Phone" required>
+                        <input type="text" id="update_address" name="address" placeholder="Address" required>
+                        <button type="submit">Update Patient</button>
+                        <button type="button" onclick="hideUpdateForm()">Cancel</button>
+                    </form>
+                </div>
+            </section>
+            
+            <!-- JavaScript for Update Form -->
+            <script>
+                function populateUpdateForm(patient_id, name, email, phone, address) {
+                    document.getElementById('update_patient_id').value = patient_id;
+                    document.getElementById('update_name').value = name;
+                    document.getElementById('update_email').value = email;
+                    document.getElementById('update_phone').value = phone;
+                    document.getElementById('update_address').value = address;
+            
+                    document.getElementById('updateForm').style.display = 'block';
+                    window.scrollTo(0, document.getElementById('updateForm').offsetTop);
+                }
+            
+                function hideUpdateForm() {
+                    document.getElementById('updateForm').style.display = 'none';
+                }
+            </script>
+            
+            <section id="patients-activation" class="section">
+                <h2>Patients Activation</h2>
+                <p>Manage patient activation status and requests</p>
+                <h2>Manage Patients</h2>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Status</th>
+                            
+                            <th>Actions</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for patient in patients %}
+                        <tr>
+                            <td>{{ patient.patient_id }}</td>
+                            <td>{{ patient.name }}</td>
+                            <td>{{ patient.email }}</td>
+                            <td>{{ patient.phone }}</td>
+                            <td>{{ patient.address }}</td>
+                            <td>{{ 'Active' if patient.is_activated else 'Inactive' }}</td>
+                            <td>
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+                                    {% if patient.is_activated == 0 %}
+                                        <button type="submit" name="action" value="activate" class="btn btn-activate">
+                                            Activate
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" name="action" value="deactivate" class="btn btn-deactivate">
+                                            Deactivate
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="doctors-activation" class="section">
+                <h2>Doctors Activation</h2>
+                <p>Handle doctor activation and verification</p>
+            </section>
+
+            <section id="doctors" class="section">
+                <h2>Doctors</h2>
+                <p>View and manage doctor profiles</p>
+            </section>
+
+            <section id="files" class="section">
+                <h2>Files</h2>
+                <p>Access and manage medical records and documents</p>
+            </section>
+
+            <section id="assign-doctors" class="section">
+                <h2>Assign Doctors</h2>
+                <p>Assign doctors to patients and manage assignments</p>
+            </section>
+
+            <section id="doctor-request" class="section">
+                <h2>Doctor Request</h2>
+                <p>Handle incoming doctor requests and applications</p>
+            </section>
+
+            <section id="graph" class="section">
+                <h2>Graph</h2>
+                <p>View analytics and statistical data</p>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

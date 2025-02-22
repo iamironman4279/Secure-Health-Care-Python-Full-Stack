@@ -1,0 +1,18 @@
+<form method="POST">
+    <label>Blood Group:</label>
+    <input type="text" name="blood_group" value="{{ decrypted_values[0] }}" required><br>
+
+    <label>Blood Pressure:</label>
+    <input type="text" name="blood_pressure" value="{{ decrypted_values[1] }}" required><br>
+
+    <label>Body Temperature:</label>
+    <input type="text" name="body_temp" value="{{ decrypted_values[2] }}" required><br>
+
+    <label>Pulse Rate:</label>
+    <input type="text" name="pulse_rate" value="{{ decrypted_values[3] }}" required><br>
+
+    <label>Previous Medications:</label>
+    <textarea name="medications" required>{{ decrypted_values[4] }}</textarea><br>
+
+    <button type="submit">Update Data</button>
+</form>

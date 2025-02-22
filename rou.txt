@@ -1,0 +1,13 @@
+ <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="#">Patients Activation</a>
+            <a href="#">Doctors Activation</a>
+            <a href="#">Patients</a>
+            <a href="#">Doctors</a>
+            <a href="#">Files</a>
+            <a href="#">Assign Doctors</a>
+            <a href="#">Doctor Request</a>
+            <a href="#">Graph</a>
+        </div>
+        <button class="logout-btn">Logout</button>
+    </div> 
