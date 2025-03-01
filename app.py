@@ -286,13 +286,253 @@ def manage_patients():
 
     return render_template('cloudserver.html', patients=patients)
 
+@app.route('/manage_doctors', methods=['GET', 'POST'])
+def manage_doctors():
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        # ------------- Update Doctor ------------- #
+        if action == 'update':
+            doctor_id = request.form.get('doctor_id')
+            name = request.form.get('name')
+            email = request.form.get('email')
+            phone = request.form.get('phone')
+            specialization = request.form.get('specialization')
+            
+            if not doctor_id:
+                flash("Doctor ID is required to update.", "danger")
+                return redirect(url_for('manage_doctors'))
+            
+            cursor.execute("""
+                UPDATE doctors
+                SET name = %s, email = %s, phone = %s, specialization = %s
+                WHERE doctor_id = %s
+            """, (name, email, phone, specialization, doctor_id))
+            mysql.connection.commit()
+            flash(f"Doctor {doctor_id} updated successfully.", "success")
+        
+        # ------------- Delete Doctor ------------- #
+        elif action == 'delete':
+            doctor_id = request.form.get('doctor_id')
+            if not doctor_id:
+                flash("Doctor ID is required to delete.", "danger")
+                return redirect(url_for('manage_doctors'))
+            
+            cursor.execute("DELETE FROM doctors WHERE doctor_id = %s", (doctor_id,))
+            mysql.connection.commit()
+            flash(f"Doctor {doctor_id} deleted successfully.", "danger")
+        
+        # ------------- Activate/Deactivate Doctor ------------- #
+        elif action in ['activate', 'deactivate']:
+            doctor_id = request.form.get('doctor_id')
+            activation_status = '1' if action == 'activate' else '0'
+            
+            if not doctor_id:
+                flash("Doctor ID is required to change activation status.", "danger")
+                return redirect(url_for('manage_doctors'))
+            
+            cursor.execute("""
+                UPDATE doctors
+                SET is_activated = %s
+                WHERE doctor_id = %s
+            """, (activation_status, doctor_id))
+            mysql.connection.commit()
+            flash(f"Doctor {doctor_id} has been {'activated' if activation_status == '1' else 'deactivated'}.", "info")
+        
+        return redirect(url_for('manage_doctors'))
+    
+    # ------------- Read: Fetch All Doctors ------------- #
+    cursor.execute("SELECT id, doctor_id, name, email, phone, specialization, is_activated FROM doctors")
+    doctors = cursor.fetchall()
+    cursor.close()
+    
+    return render_template('doctors.html', doctors=doctors)
 # ------------------- Logout ------------------- #
 @app.route('/logout')
 def logout():
     session.clear()
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
+import secrets
+
+@app.route('/register_doctor', methods=['GET', 'POST'])
+def register_doctor():
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    if request.method == 'POST':
+        # Generate Unique Random Doctor ID
+        while True:
+            random_number = secrets.randbelow(10**6)  # Random 6-digit number
+            doctor_id = f"DD{str(random_number).zfill(6)}"  # Format: DD123456
+
+            # Check if Doctor ID already exists
+            cursor.execute("SELECT * FROM doctors WHERE doctor_id = %s", (doctor_id,))
+            if not cursor.fetchone():
+                break  # Unique ID found
+
+        # Get form data
+        name = request.form['name']
+        email = request.form['email']
+        phone = request.form['phone']
+        specialization = request.form['specialization']
+        password = request.form['password']  # Capture password
+
+        # Insert into DB
+        cursor.execute("""
+            INSERT INTO doctors (doctor_id, name, email, phone, specialization, password, is_activated) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (doctor_id, name, email, phone, specialization, password, '0'))  # Default to not activated
+
+        mysql.connection.commit()
+        cursor.close()
+
+        flash(f"Doctor {name} registered successfully with ID {doctor_id}.", 'success')
+        return redirect(url_for('register_doctor'))
+
+    return render_template('register_doctor.html')
+
+@app.route('/doctor_login', methods=['GET', 'POST'])
+def doctor_login():
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        # Check if doctor exists and is activated
+        cursor.execute("""
+            SELECT * FROM doctors 
+            WHERE email = %s AND password = %s AND is_activated = '1'
+        """, (email, password))
+        doctor = cursor.fetchone()
+
+        if doctor:
+            session['doctor_id'] = doctor['doctor_id']
+            flash(f"Welcome Dr. {doctor['name']}!", 'success')
+            return redirect(url_for('doctor_dashboard'))
+        else:
+            flash("Invalid credentials or account not activated.", 'danger')
+
+    return render_template('doctor_login.html')
+@app.route('/doctor_dashboard', methods=['GET', 'POST'])
+def doctor_dashboard():
+    if 'doctor_id' not in session:
+        flash("Please log in first.", 'warning')
+        return redirect(url_for('doctor_login'))
+
+    doctor_id = session['doctor_id']
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # Fetch doctor info
+    cursor.execute("SELECT * FROM doctors WHERE doctor_id = %s", (doctor_id,))
+    doctor = cursor.fetchone()
+
+    # Handle Confirm/Cancel appointment actions
+    if request.method == 'POST':
+        appointment_id = request.form['appointment_id']
+        action = request.form['action']
+
+        if action == 'Confirm':
+            cursor.execute("UPDATE appointments SET status = 'Confirmed' WHERE appointment_id = %s", (appointment_id,))
+        elif action == 'Cancel':
+            cursor.execute("UPDATE appointments SET status = 'Cancelled' WHERE appointment_id = %s", (appointment_id,))
+
+        mysql.connection.commit()
+        flash(f"Appointment {action}ed successfully!", "success")
+        return redirect(url_for('doctor_dashboard'))
+
+    # Fetch doctor's appointments
+    cursor.execute("""
+        SELECT a.*, p.name AS patient_name 
+        FROM appointments a
+        JOIN patients p ON a.patient_id = p.patient_id
+        WHERE a.doctor_id = %s
+        ORDER BY a.appointment_date ASC
+    """, (doctor_id,))
+    appointments = cursor.fetchall()
+    cursor.close()
+
+    return render_template('doctor_dashboard.html', doctor=doctor, appointments=appointments)
+
+
+@app.route('/appointments', methods=['GET', 'POST'])
+def appointments():
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # Booking an Appointment
+    if request.method == 'POST':
+        patient_id = session.get('patient_id')
+        doctor_id = request.form['doctor_id']
+        appointment_date = request.form['appointment_date']
+        appointment_time = request.form['appointment_time']
+        reason = request.form['reason']
+
+        cursor.execute("""
+            INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_time, reason)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (patient_id, doctor_id, appointment_date, appointment_time, reason))
+        mysql.connection.commit()
+
+        flash("Appointment booked successfully!", "success")
+        return redirect(url_for('appointments'))
+
+    # Fetch Available Doctors
+    cursor.execute("SELECT * FROM doctors")
+    doctors = cursor.fetchall()
+    cursor.close()
+
+    return render_template('appointments.html', doctors=doctors)
+
+@app.route('/video_call/<int:appointment_id>')
+def video_call(appointment_id):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # Fetch appointment details
+    cursor.execute("""
+        SELECT a.*, p.name AS patient_name, d.name AS doctor_name
+        FROM appointments a
+        JOIN patients p ON a.patient_id = p.patient_id
+        JOIN doctors d ON a.doctor_id = d.doctor_id
+        WHERE a.appointment_id = %s
+    """, (appointment_id,))
+    appointment = cursor.fetchone()
+    cursor.close()
+
+    if not appointment:
+        flash("Appointment not found!", "danger")
+        return redirect(url_for('appointments'))
+
+    # Redirect to video call template with appointment details
+    return render_template('video_call.html', appointment=appointment)
+@app.route('/join_call/<int:patient_id>')
+def join_call(patient_id):
+    # Check if the doctor is logged in
+    if 'doctor_id' not in session:
+        flash("Please log in first.", "warning")
+        return redirect(url_for('doctor_login'))
+
+    # Fetch patient details
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM patients WHERE patient_id = %s", (patient_id,))
+    patient = cursor.fetchone()
+    cursor.close()
+
+    if not patient:
+        flash("Patient not found.", "danger")
+        return redirect(url_for('doctor_dashboard'))
+
+    # Render video call template
+    return render_template('video_call.html', patient=patient)
+
 
 # ------------------- Run App ------------------- #
+@app.route('/doctor_logout')
+def doctor_logout():
+    session.pop('doctor_id', None)
+    flash("You have been logged out.", 'info')
+    return redirect(url_for('doctor_login'))
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)

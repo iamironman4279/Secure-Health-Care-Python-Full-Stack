@@ -1,15 +1,225 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f5e9;
+            margin: 0;
+            padding: 0;
+        }
+        nav {
+            background-color: #2e7d32;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        nav a {
+            color: white;
+            margin: 0 1rem;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            padding: 2rem;
+        }
+        h2 {
+            color: #1b5e20;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+        table, th, td {
+            border: 1px solid #a5d6a7;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+        }
+        th {
+            background-color: #66bb6a;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+        .logout {
+            background-color: #c62828;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .logout:hover {
+            background-color: #b71c1c;
+        }
+        .btn {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-confirm {
+            background-color: #43a047;
+        }
+        .btn-cancel {
+            background-color: #e53935;
+        }
+        .btn-confirm:hover {
+            background-color: #388e3c;
+        }
+        .btn-cancel:hover {
+            background-color: #c62828;
+        }
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+            }
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+            th, td {
+                padding: 0.5rem;
+                text-align: right;
+                position: relative;
+            }
+            td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                font-weight: bold;
+                text-align: left;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>Welcome, Dr. {{ doctor.name }}</h2>
-    <p><strong>Doctor ID:</strong> {{ doctor.doctor_id }}</p>
-    <p><strong>Email:</strong> {{ doctor.email }}</p>
-    <p><strong>Phone:</strong> {{ doctor.phone }}</p>
-    <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
 
-    <a href="{{ url_for('doctor_logout') }}">Logout</a>
+    <!-- Navbar -->
+    <nav>
+        <div>
+            <a href="#">Home</a>
+            <a href="#">Patients Details</a>
+            <a href="#">Search Patients</a>
+            <a href="#">Requested Patients</a>
+            <a href="#">Shared Patients</a>
+            <a href="#">Share Patient</a>
+            <a href="#">View Appointments</a>
+        </div>
+        <a href="#" class="logout">Logout</a>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <h2>Welcome, Dr. {{ doctor.name }}</h2>
+        <p><strong>Doctor ID:</strong> {{ doctor.doctor_id }}</p>
+        <p><strong>Email:</strong> {{ doctor.email }}</p>
+        <p><strong>Phone:</strong> {{ doctor.phone }}</p>
+        <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
+
+        <!-- Patients Table -->
+        <h3>Patients Details</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Patient ID</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Condition</th>
+                    <th>Contact</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td data-label="Patient ID">{{ patient.patient_id }}</td>
+                    <td data-label="Name">{{ patient.name }}</td>
+                    <td data-label="Age">{{ patient.age }}</td>
+                    <td data-label="Condition">{{ patient.condition }}</td>
+                    <td data-label="Contact">{{ patient.contact }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+<!-- Appointments Table -->
+<h3>Your Appointments</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Appointment ID</th>
+            <th>Patient Name</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for appt in appointments %}
+        <tr>
+            <td data-label="Appointment ID">{{ appt.appointment_id }}</td>
+            <td data-label="Patient Name">{{ appt.patient_name }}</td>
+            <td data-label="Date">{{ appt.appointment_date }}</td>
+            <td data-label="Time">{{ appt.appointment_time }}</td>
+            <td data-label="Reason">{{ appt.reason }}</td>
+            <td data-label="Status">{{ appt.status }}</td>
+            <td data-label="Actions">
+                {% if appt.status == 'Pending' %}
+                <!-- Confirm and Cancel Buttons -->
+                <form method="POST" style="display:inline;">
+                    <input type="hidden" name="appointment_id" value="{{ appt.appointment_id }}">
+                    <button type="submit" name="action" value="Confirm" class="btn btn-confirm">Confirm</button>
+                    <button type="submit" name="action" value="Cancel" class="btn btn-cancel">Cancel</button>
+                </form>
+                
+                {% elif appt.status == 'Confirmed' %}
+                <!-- Join Video Call Button -->
+                <a href="/join_call/{{ appt.appointment_id }}" class="btn btn-join">Join Video Call</a>
+                
+                {% elif appt.status == 'Cancelled' %}
+                <span style="color: red; font-weight: bold;">Cancelled</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7">No appointments found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Styling for Join Button -->
+<style>
+    .btn-join {
+        background-color: #1e88e5;
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .btn-join:hover {
+        background-color: #1565c0;
+    }
+</style>
+
+    </div>
+
 </body>
 </html>

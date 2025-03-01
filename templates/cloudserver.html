@@ -303,7 +303,7 @@
             setTimeout(() => {
                 document.querySelector('.skeleton-loading').style.display = 'none';
                 document.querySelector('.main-content').classList.add('loaded');
-            }, 1500);
+            }, 0);
         }
 
         function showSection(sectionId) {
@@ -419,7 +419,7 @@
 
     /* Hover Effect for Both Buttons */
     button:hover {
-        background-color: #218838; /* Darker Green on Hover */
+        background-color: #f72828; /* Darker Green on Hover */
     }
                                     /* Style for Input Fields */
                                     input[type="text"],
@@ -465,7 +465,7 @@
                                 <form method="POST" style="display:inline;">
                                     <input type="hidden" name="action" value="update">
                                     <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
-                                    <button type="button" onclick="populateUpdateForm('{{ patient.patient_id }}', '{{ patient.name }}', '{{ patient.email }}', '{{ patient.phone }}', '{{ patient.address }}')">Update</button>
+                                    <button type="button" onclick="populateUpdateForm('{{ patient.patient_id }}', '{{ patient.name }}', '{{ patient.email }}', '{{ patient.phone }}', '{{ patient.address }}')">Edit</button>
                                 </form>
             
                                 <!-- Delete -->
@@ -572,8 +572,7 @@
             </section>
 
             <section id="doctors-activation" class="section">
-                <h2>Doctors Activation</h2>
-                <p>Handle doctor activation and verification</p>
+                
             </section>
 
             <section id="doctors" class="section">

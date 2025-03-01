@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Appointment</title>
+</head>
+<body>
+    <h1>Book an Appointment</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('appointments') }}">
+        <label for="doctor">Choose a Doctor:</label>
+        <select name="doctor_id" required>
+            {% for doctor in doctors %}
+                <option value="{{ doctor.doctor_id }}">{{ doctor.name }} ({{ doctor.specialization }})</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="appointment_date">Date:</label>
+        <input type="date" name="appointment_date" required><br><br>
+
+        <label for="appointment_time">Time:</label>
+        <input type="time" name="appointment_time" required><br><br>
+
+        <label for="reason">Reason for Visit:</label>
+        <textarea name="reason" required></textarea><br><br>
+
+        <button type="submit">Book Appointment</button>
+    </form>
+
+    <br><a href="{{ url_for('home') }}">Back to Home</a>
+</body>
+</html>
