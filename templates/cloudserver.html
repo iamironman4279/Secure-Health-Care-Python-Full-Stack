@@ -4,562 +4,220 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cloud Server Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
     <style>
-        :root {
-            --primary-green: #2e7d32;
-            --light-green: #4caf50;
-            --dark-green: #1b5e20;
-            --hover-green: #388e3c;
-            --bg-green: #e8f5e9;
-            --text-green: #1b5e20;
-            --white: #ffffff;
-            --skeleton-bg: #e0e0e0;
-            --skeleton-shine: #f5f5f5;
-            --danger-red: #e53935;
-            --table-border: #a5d6a7;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: var(--bg-green);
-        }
-
-        .nav-container {
-            background: var(--primary-green);
-            padding: 1rem;
-            position: fixed;
-            width: 250px;
-            height: 100vh;
-            left: 0;
-            top: 0;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            z-index: 100;
-        }
-
-        .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .nav-links a {
-            color: var(--white);
-            text-decoration: none;
-            padding: 0.8rem 1rem;
-            border-radius: 5px;
-            transition: background 0.3s;
-        }
-
-        .nav-links a:hover {
-            background: var(--hover-green);
-        }
-
-        .nav-links a.active {
-            background: var(--light-green);
-        }
-
-        .logout-btn {
-            position: absolute;
-            bottom: 2rem;
-            left: 1rem;
-            right: 1rem;
-            padding: 0.8rem;
-            background: var(--dark-green);
-            color: var(--white);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: var(--text-green);
-        }
-
-        .content {
-            margin-left: 250px;
-            padding: 2rem;
-        }
-
-        .section {
-            display: none;
-            background: var(--white);
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-            border-left: 4px solid var(--primary-green);
-        }
-
-        .section.active {
-            display: block;
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .section h2 {
-            margin-bottom: 1rem;
-            color: var(--text-green);
-            border-bottom: 2px solid var(--light-green);
-            padding-bottom: 0.5rem;
-        }
-
-        .section p {
-            color: var(--text-green);
-            line-height: 1.6;
-        }
-
-        /* Skeleton Loading Styles */
-        .skeleton-loading {
+        /* Loader styles */
+        #loader {
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--white);
-            z-index: 1000;
-            display: flex;
-        }
-
-        .skeleton-nav {
-            width: 250px;
-            height: 100vh;
-            background: var(--skeleton-bg);
-            padding: 1rem;
-        }
-
-        .skeleton-content {
-            flex: 1;
-            padding: 2rem;
-        }
-
-        .skeleton-item {
-            height: 40px;
-            background: var(--skeleton-bg);
-            margin: 1rem 0;
-            border-radius: 5px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .skeleton-card {
-            height: 200px;
-            background: var(--skeleton-bg);
-            margin: 2rem 0;
-            border-radius: 10px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .skeleton-item::after,
-        .skeleton-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            transform: translateX(-100%);
-            background-image: linear-gradient(
-                90deg,
-                rgba(255, 255, 255, 0) 0,
-                rgba(255, 255, 255, 0.2) 20%,
-                rgba(255, 255, 255, 0.5) 60%,
-                rgba(255, 255, 255, 0)
-            );
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            100% {
-                transform: translateX(100%);
-            }
-        }
-
-        /* Table Styles */
-        .data-table {
             width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background: var(--white);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
         }
-
-        .data-table th,
-        .data-table td {
-            border: 1px solid var(--table-border);
-            padding: 12px;
-            text-align: left;
-        }
-
-        .data-table th {
-            background: var(--primary-green);
-            color: var(--white);
-            font-weight: 500;
-        }
-
-        .data-table tr:nth-child(even) {
-            background-color: var(--bg-green);
-        }
-
-        .data-table tr:hover {
-            background-color: #f5f5f5;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            color: var(--white);
-            font-weight: 500;
-            transition: opacity 0.3s;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .btn-activate {
-            background-color: var(--light-green);
-        }
-
-        .btn-deactivate {
-            background-color: var(--danger-red);
-        }
-
-        .flash {
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 4px;
-            font-weight: 500;
-        }
-
-        .flash.success {
-            background-color: var(--light-green);
-            color: var(--white);
-        }
-
-        .flash.error {
-            background-color: var(--danger-red);
-            color: var(--white);
-        }
-
-        .main-content {
-            display: none;
-        }
-
-        .main-content.loaded {
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .nav-container {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-
-            .content {
-                margin-left: 0;
-            }
-
-            .logout-btn {
-                position: relative;
-                margin-top: 1rem;
-                left: 0;
-                right: 0;
-            }
-
-            .section {
-                margin-top: 1rem;
-            }
-
-            .data-table {
-                display: block;
-                overflow-x: auto;
-            }
-            
-            .data-table th,
-            .data-table td {
-                white-space: nowrap;
-            }
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
     </style>
-
-    <script>
-        window.onload = function() {
-            setTimeout(() => {
-                document.querySelector('.skeleton-loading').style.display = 'none';
-                document.querySelector('.main-content').classList.add('loaded');
-            }, 0);
-        }
-
-        function showSection(sectionId) {
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            document.querySelectorAll('.nav-links a').forEach(link => {
-                link.classList.remove('active');
-            });
-            
-            document.getElementById(sectionId).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function logout() {
-            alert('Logging out...');
-            // Add your logout logic here
-        }
-    </script>
 </head>
-<body>
-    <!-- Skeleton Loading -->
-    <div class="skeleton-loading">
-        <div class="skeleton-nav">
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
-            <div class="skeleton-item"></div>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex">
+    <!-- Loading Animation -->
+    <div id="loader">
+        <dotlottie-player 
+            src="https://lottie.host/d7c0ef6c-ab8e-4878-8616-f715dde2daa3/rHYriJxVCS.lottie" 
+            background="transparent" 
+            speed="1" 
+            style="width: 300px; height: 300px" 
+            loop 
+            autoplay>
+        </dotlottie-player>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <div class="fixed w-64 h-full bg-gray-800 shadow-xl p-6 flex flex-col">
+        <div class="nav-links space-y-4 mt-6">
+            <a href="#" onclick="showSection('home')" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300 active">Home</a>
+            <a href="#" onclick="showSection('patients-activation')" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300">Patients Activation</a>
+            <a href="#" onclick="showSection('doctors-activation')" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300">Doctors Activation</a>
+            <a href="#" onclick="showSection('patients')" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300">Patients</a>
+            <a href="#" onclick="showSection('doctors')" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300">Doctors</a>
+            <a href="#" onclick="showSection('files')" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300">Files</a>
+            <a href="#" onclick="showSection('assign-doctors')" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300">Assign Doctors</a>
+            <a href="#" onclick="showSection('doctor-request')" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300">Doctor Request</a>
+            <a href="#" onclick="showSection('graph')" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300">Graph</a>
         </div>
-        <div class="skeleton-content">
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card"></div>
-        </div>
+        <a href="{{ url_for('auth.logout') }}" class="mt-auto mb-4 bg-purple-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-purple-700 hover:shadow-[0_0_15px_rgba(159,122,234,0.7)] transition-all duration-300 text-center">Logout</a>
     </div>
 
     <!-- Main Content -->
-    <div class="main-content">
-        <div class="nav-container">
-            <div class="nav-links">
-                <a href="#" onclick="showSection('home')" class="active">Home</a>
-                <a href="#" onclick="showSection('patients-activation')">Patients Activation</a>
-                <a href="#" onclick="showSection('doctors-activation')">Doctors Activation</a>
-                <a href="#" onclick="showSection('patients')">Patients</a>
-                <a href="#" onclick="showSection('doctors')">Doctors</a>
-                <a href="#" onclick="showSection('files')">Files</a>
-                <a href="#" onclick="showSection('assign-doctors')">Assign Doctors</a>
-                <a href="#" onclick="showSection('doctor-request')">Doctor Request</a>
-                <a href="#" onclick="showSection('graph')">Graph</a>
+    <div class="ml-64 p-6 w-full">
+        <!-- Home Section -->
+        <section id="home" class="section hidden bg-gray-800 p-6 rounded-xl shadow-xl active relative overflow-hidden min-h-screen">
+            <!-- Full-Page Background Video -->
+            <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted>
+                <source src="{{ url_for('static', filename='animation.mp4') }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        
+            <!-- Transparent Card at the Top with Typing Animation -->
+            <div class="absolute top-10 left-1/2 transform -translate-x-1/2 p-4">
+                <div class="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-lg text-center max-w-2xl">
+                    <p id="animatedText" class="text-lg text-purple-400 leading-relaxed"></p>
+                </div>
             </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-
-        <div class="content">
-            <section id="home" class="section active">
-                <h2>Home</h2>
-                <p>Welcome to the Cloud Server Dashboard</p>
-            </section>
-            <section id="patients" class="section">
-                <h2>Manage Patients</h2>
-            
-                <!-- Flash Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="flash {{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-            
-                
-            
-                <!-- Patients Table -->
-                <h3>All Patients</h3>
-                <table class="data-table">
+        
+            <!-- Typing Animation Script -->
+            <script>
+                const text = "Empowering healthcare through secure and innovative technology. We enable seamless access to patient records, enhance medical collaboration, and ensure data privacy for better, faster, and smarter healthcare solutions worldwide.";
+                const textElement = document.getElementById("animatedText");
+                let index = 0;
+        
+                function typeText() {
+                    if (index < text.length) {
+                        textElement.innerHTML += text.charAt(index);
+                        index++;
+                        setTimeout(typeText, 70); // Adjust speed (4 seconds total)
+                    }
+                }
+            </script>
+        </section>
+        
+        <!-- Patients Section -->
+        <section id="patients" class="section hidden bg-gray-800 p-6 rounded-xl shadow-xl">
+            <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Manage Patients</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="p-4 mb-6 rounded-lg text-center font-medium
+                            {% if category == 'success' %} bg-green-900/80 text-green-200 border border-green-700 {% endif %}
+                            {% if category == 'info' %} bg-blue-900/80 text-blue-200 border border-blue-700 {% endif %}
+                            {% if category == 'danger' %} bg-red-900/80 text-red-200 border border-red-700 {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <h3 class="text-xl text-blue-300 mb-4">All Patients</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr>
-                            <th>Patient ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Address</th>
-                            
-                            <th>Actions</th>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Patient ID</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Name</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Email</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Phone</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Address</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for patient in patients %}
-                        <tr>
-                            <td>{{ patient.patient_id }}</td>
-                            <td>{{ patient.name }}</td>
-                            <td>{{ patient.email }}</td>
-                            <td>{{ patient.phone }}</td>
-                            <td>{{ patient.address }}</td>
-                            
-                            <td>
-                                <style>
-                                    button {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        color: white;
-        font-size: 14px;
-        cursor: pointer;
-        background-color: #28a745; /* Green */
-        transition: background-color 0.3s ease;
-    }
-
-    /* Hover Effect for Both Buttons */
-    button:hover {
-        background-color: #f72828; /* Darker Green on Hover */
-    }
-                                    /* Style for Input Fields */
-                                    input[type="text"],
-                                    input[type="email"],
-                                    input[type="tel"],
-                                    input[type="hidden"],
-                                    textarea {
-                                        width: 100%;
-                                        padding: 10px;
-                                        margin: 8px 0;
-                                        box-sizing: border-box;
-                                        border: 1px solid #ccc;
-                                        border-radius: 4px;
-                                        font-size: 14px;
-                                        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-                                    }
-                                
-                                    /* Focus Effect */
-                                    input[type="text"]:focus,
-                                    input[type="email"]:focus,
-                                    input[type="tel"]:focus,
-                                    textarea:focus {
-                                        border-color: #28a745; /* Green Border */
-                                        box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
-                                        outline: none;
-                                    }
-                                
-                                    /* Styling for Hidden Inputs (Optional) */
-                                    input[type="hidden"] {
-                                        display: none;
-                                    }
-                                
-                                    /* Textarea Specific */
-                                    textarea {
-                                        resize: vertical;
-                                        min-height: 100px;
-                                    }
-                                </style>
-                                
-                                
-                                
-                                <!-- Update -->
-                                <form method="POST" style="display:inline;">
-                                    <input type="hidden" name="action" value="update">
-                                    <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
-                                    <button type="button" onclick="populateUpdateForm('{{ patient.patient_id }}', '{{ patient.name }}', '{{ patient.email }}', '{{ patient.phone }}', '{{ patient.address }}')">Edit</button>
-                                </form>
-            
-                                <!-- Delete -->
-                                <form method="POST" style="display:inline;">
+                        <tr class="hover:bg-gray-700 transition-colors duration-200" id="patient-row-{{ patient.patient_id }}">
+                            <td class="p-3 border-b border-gray-600">{{ patient.patient_id }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ patient.name }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ patient.email }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ patient.phone }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ patient.address }}</td>
+                            <td class="p-3 border-b border-gray-600 flex space-x-2">
+                                <button onclick="showEditForm('patient', '{{ patient.patient_id }}', '{{ patient.name }}', '{{ patient.email }}', '{{ patient.phone }}', '{{ patient.address }}')" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-300">
+                                    Edit
+                                </button>
+                                <form method="POST" class="inline">
                                     <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="entity" value="patient">
                                     <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
-                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this patient?');">Delete</button>
+                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this patient?');" 
+                                            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)] transition-all duration-300">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr id="edit-form-patient-{{ patient.patient_id }}" class="hidden bg-gray-700">
+                            <td colspan="6" class="p-4">
+                                <form method="POST" class="space-y-4">
+                                    <input type="hidden" name="action" value="update">
+                                    <input type="hidden" name="entity" value="patient">
+                                    <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
+                                    <div class="flex space-x-4">
+                                        <input type="text" name="name" value="{{ patient.name }}" placeholder="Name" required 
+                                               class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                        <input type="email" name="email" value="{{ patient.email }}" placeholder="Email" required 
+                                               class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                        <input type="text" name="phone" value="{{ patient.phone }}" placeholder="Phone" required 
+                                               class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                        <input type="text" name="address" value="{{ patient.address }}" placeholder="Address" 
+                                               class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                        <div class="flex space-x-2">
+                                            <button type="submit" 
+                                                    class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-all duration-300">
+                                                Update
+                                            </button>
+                                            <button type="button" onclick="hideEditForm('patient', '{{ patient.patient_id }}')" 
+                                                    class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-all duration-300">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
                                 </form>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-            
-                <!-- Update Patient Form (Hidden by default) -->
-                <div id="updateForm" style="display:none;">
-                    <h3>Update Patient</h3>
-                    <form method="POST">
-                        <input type="hidden" name="action" value="update">
-                        <input type="hidden" id="update_patient_id" name="patient_id">
-            
-                        <input type="text" id="update_name" name="name" placeholder="Name" required>
-                        <input type="email" id="update_email" name="email" placeholder="Email" required>
-                        <input type="text" id="update_phone" name="phone" placeholder="Phone" required>
-                        <input type="text" id="update_address" name="address" placeholder="Address" required>
-                        <button type="submit">Update Patient</button>
-                        <button type="button" onclick="hideUpdateForm()">Cancel</button>
-                    </form>
-                </div>
-            </section>
-            
-            <!-- JavaScript for Update Form -->
-            <script>
-                function populateUpdateForm(patient_id, name, email, phone, address) {
-                    document.getElementById('update_patient_id').value = patient_id;
-                    document.getElementById('update_name').value = name;
-                    document.getElementById('update_email').value = email;
-                    document.getElementById('update_phone').value = phone;
-                    document.getElementById('update_address').value = address;
-            
-                    document.getElementById('updateForm').style.display = 'block';
-                    window.scrollTo(0, document.getElementById('updateForm').offsetTop);
-                }
-            
-                function hideUpdateForm() {
-                    document.getElementById('updateForm').style.display = 'none';
-                }
-            </script>
-            
-            <section id="patients-activation" class="section">
-                <h2>Patients Activation</h2>
-                <p>Manage patient activation status and requests</p>
-                <h2>Manage Patients</h2>
-                
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="flash {{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+            </div>
+        </section>
 
-                <table class="data-table">
+        <!-- Patients Activation Section -->
+        <section id="patients-activation" class="section hidden bg-gray-800 p-6 rounded-xl shadow-xl">
+            <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Patients Activation</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr>
-                            <th>Patient ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Address</th>
-                            <th>Status</th>
-                            
-                            <th>Actions</th>
-                            
+                        <tr class="bg-gray-700">
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Patient ID</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Name</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Email</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Phone</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Address</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Status</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for patient in patients %}
-                        <tr>
-                            <td>{{ patient.patient_id }}</td>
-                            <td>{{ patient.name }}</td>
-                            <td>{{ patient.email }}</td>
-                            <td>{{ patient.phone }}</td>
-                            <td>{{ patient.address }}</td>
-                            <td>{{ 'Active' if patient.is_activated else 'Inactive' }}</td>
-                            <td>
-                                <form method="POST" style="display:inline;">
+                        <tr class="hover:bg-gray-700 transition-colors duration-200">
+                            <td class="p-3 border-b border-gray-600">{{ patient.patient_id }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ patient.name }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ patient.email }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ patient.phone }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ patient.address }}</td>
+                            <td class="p-3 border-b border-gray-600">
+                                <span class="{% if patient.is_activated %} text-green-400 {% else %} text-yellow-400 {% endif %} font-semibold">
+                                    {{ 'Active' if patient.is_activated else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="p-3 border-b border-gray-600">
+                                <form method="POST" class="inline">
+                                    <input type="hidden" name="entity" value="patient">
                                     <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
                                     {% if patient.is_activated == 0 %}
-                                        <button type="submit" name="action" value="activate" class="btn btn-activate">
+                                        <button type="submit" name="action" value="activate" 
+                                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 hover:shadow-[0_0_10px_rgba(34,197,94,0.5)] transition-all duration-300">
                                             Activate
                                         </button>
                                     {% else %}
-                                        <button type="submit" name="action" value="deactivate" class="btn btn-deactivate">
+                                        <button type="submit" name="action" value="deactivate" 
+                                                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)] transition-all duration-300">
                                             Deactivate
                                         </button>
                                     {% endif %}
@@ -569,37 +227,477 @@
                         {% endfor %}
                     </tbody>
                 </table>
-            </section>
+            </div>
+        </section>
 
-            <section id="doctors-activation" class="section">
-                
-            </section>
+        <!-- Doctors Section -->
+        <section id="doctors" class="section hidden bg-gray-800 p-6 rounded-xl shadow-xl">
+            <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Manage Doctors</h2>
+            <h3 class="text-xl text-blue-300 mb-4">All Doctors</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Doctor ID</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Name</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Email</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Phone</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Specialization</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doctor in doctors %}
+                        <tr class="hover:bg-gray-700 transition-colors duration-200" id="doctor-row-{{ doctor.doctor_id }}">
+                            <td class="p-3 border-b border-gray-600">{{ doctor.doctor_id }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ doctor.name }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ doctor.email }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ doctor.phone }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ doctor.specialization }}</td>
+                            <td class="p-3 border-b border-gray-600 flex space-x-2">
+                                <button onclick="showEditForm('doctor', '{{ doctor.doctor_id }}', '{{ doctor.name }}', '{{ doctor.email }}', '{{ doctor.phone }}', '{{ doctor.specialization }}')" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-300">
+                                    Edit
+                                </button>
+                                <form method="POST" class="inline">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="entity" value="doctor">
+                                    <input type="hidden" name="doctor_id" value="{{ doctor.doctor_id }}">
+                                    <button type="submit" onclick="return confirm('Are you sure you want to delete this doctor?');" 
+                                            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)] transition-all duration-300">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr id="edit-form-doctor-{{ doctor.doctor_id }}" class="hidden bg-gray-700">
+                            <td colspan="6" class="p-4">
+                                <form method="POST" class="space-y-4">
+                                    <input type="hidden" name="action" value="update">
+                                    <input type="hidden" name="entity" value="doctor">
+                                    <input type="hidden" name="doctor_id" value="{{ doctor.doctor_id }}">
+                                    <div class="flex space-x-4">
+                                        <input type="text" name="name" value="{{ doctor.name }}" placeholder="Name" required 
+                                               class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                        <input type="email" name="email" value="{{ doctor.email }}" placeholder="Email" required 
+                                               class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                        <input type="text" name="phone" value="{{ doctor.phone }}" placeholder="Phone" required 
+                                               class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                        <input type="text" name="specialization" value="{{ doctor.specialization }}" placeholder="Specialization" 
+                                               class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                        <div class="flex space-x-2">
+                                            <button type="submit" 
+                                                    class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-all duration-300">
+                                                Update
+                                            </button>
+                                            <button type="button" onclick="hideEditForm('doctor', '{{ doctor.doctor_id }}')" 
+                                                    class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-all duration-300">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-            <section id="doctors" class="section">
-                <h2>Doctors</h2>
-                <p>View and manage doctor profiles</p>
-            </section>
+        <!-- Doctors Activation Section -->
+        <section id="doctors-activation" class="section hidden bg-gray-800 p-6 rounded-xl shadow-xl">
+            <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Doctors Activation</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Doctor ID</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Name</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Email</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Phone</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Specialization</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Status</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doctor in doctors %}
+                        <tr class="hover:bg-gray-700 transition-colors duration-200">
+                            <td class="p-3 border-b border-gray-600">{{ doctor.doctor_id }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ doctor.name }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ doctor.email }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ doctor.phone }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ doctor.specialization }}</td>
+                            <td class="p-3 border-b border-gray-600">
+                                <span class="{% if doctor.is_activated %} text-green-400 {% else %} text-yellow-400 {% endif %} font-semibold">
+                                    {{ 'Active' if doctor.is_activated else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="p-3 border-b border-gray-600">
+                                <form method="POST" class="inline">
+                                    <input type="hidden" name="entity" value="doctor">
+                                    <input type="hidden" name="doctor_id" value="{{ doctor.doctor_id }}">
+                                    {% if doctor.is_activated == 0 %}
+                                        <button type="submit" name="action" value="activate" 
+                                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 hover:shadow-[0_0_10px_rgba(34,197,94,0.5)] transition-all duration-300">
+                                            Activate
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" name="action" value="deactivate" 
+                                                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)] transition-all duration-300">
+                                            Deactivate
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-            <section id="files" class="section">
-                <h2>Files</h2>
-                <p>Access and manage medical records and documents</p>
-            </section>
+        <!-- Files Section -->
+        <section id="files" class="section hidden bg-gray-800 p-6 rounded-xl shadow-xl">
+            <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Medical Records</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="p-4 mb-6 rounded-lg text-center font-medium
+                            {% if category == 'success' %} bg-green-900/80 text-green-200 border border-green-700 {% endif %}
+                            {% if category == 'info' %} bg-blue-900/80 text-blue-200 border border-blue-700 {% endif %}
+                            {% if category == 'danger' %} bg-red-900/80 text-red-200 border border-red-700 {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-            <section id="assign-doctors" class="section">
-                <h2>Assign Doctors</h2>
-                <p>Assign doctors to patients and manage assignments</p>
-            </section>
+            <!-- Decryption Form -->
+            <div class="form-container max-w-md mx-auto bg-gray-700 p-6 rounded-md shadow-md mb-8">
+                <h3 class="text-xl text-blue-300 font-semibold text-center mb-4">Decrypt Encrypted Key</h3>
+                <form method="POST" action="{{ url_for('cloud.cloud_server') }}" class="space-y-4">
+                    <input type="hidden" name="entity" value="medical_records">
+                    <input type="text" name="encrypted_key" placeholder="Enter Encrypted Key" required 
+                           class="w-full p-3 bg-gray-600 border border-gray-500 rounded-md text-gray-100 
+                           focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 
+                           transition-all duration-300">
+                    <button type="submit" name="action" value="decrypt" 
+                            class="w-full bg-purple-600 text-white p-3 rounded-md font-semibold 
+                            hover:bg-purple-700 transition-colors duration-300 shadow-md">
+                        Decrypt Records
+                    </button>
+                </form>
+            </div>
 
-            <section id="doctor-request" class="section">
-                <h2>Doctor Request</h2>
-                <p>Handle incoming doctor requests and applications</p>
-            </section>
+            <!-- Encrypted Records Table -->
+            <div class="table-container overflow-x-auto mb-8">
+                <table class="w-full text-center border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Patient ID</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Blood Group</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Blood Pressure</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Body Temperature</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Pulse Rate</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Previous Medications</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Updated Time</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Encrypted Data</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in encrypted_records %}
+                        <tr class="hover:bg-gray-700 transition-colors duration-200">
+                            <td class="p-3 border-b border-gray-600">{{ record.patient_id }}</td>
+                            <td class="p-3 border-b border-gray-600 text-yellow-400">Encrypted</td>
+                            <td class="p-3 border-b border-gray-600 text-yellow-400">Encrypted</td>
+                            <td class="p-3 border-b border-gray-600 text-yellow-400">Encrypted</td>
+                            <td class="p-3 border-b border-gray-600 text-yellow-400">Encrypted</td>
+                            <td class="p-3 border-b border-gray-600 text-yellow-400">Encrypted</td>
+                            <td class="p-3 border-b border-gray-600">{{ record.updated_time }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ record.encrypted_data|truncate(20) }}</td>
+                            <td class="p-3 border-b border-gray-600">
+                                <button class="bg-purple-600 text-white px-4 py-1 rounded-md hover:bg-purple-700 
+                                               transition-colors duration-300" 
+                                        onclick="copyToClipboard('{{ record.encrypted_data }}')">Copy</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-            <section id="graph" class="section">
-                <h2>Graph</h2>
-                <p>View analytics and statistical data</p>
-            </section>
-        </div>
+            <!-- Decrypted Data Section -->
+            {% if decrypted_data %}
+            <div class="table-container overflow-x-auto mb-8">
+                <h3 class="text-xl text-blue-300 font-semibold text-center mb-4">Decrypted Data</h3>
+                <table class="w-full text-center border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Blood Group</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Blood Pressure</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Body Temperature</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Pulse Rate</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Previous Medications</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="hover:bg-gray-700 transition-colors duration-200">
+                            <td class="p-3 border-b border-gray-600">{{ decrypted_data['Blood Group'] }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ decrypted_data['Blood Pressure'] }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ decrypted_data['Body Temperature'] }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ decrypted_data['Pulse Rate'] }}</td>
+                            <td class="p-3 border-b border-gray-600">{{ decrypted_data['Previous Medications'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Assign Doctors Section -->
+        <section id="assign-doctors" class="section hidden bg-gray-800 p-6 rounded-xl shadow-xl">
+            <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Assign Doctors</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="p-4 mb-6 rounded-lg text-center font-medium
+                            {% if category == 'success' %} bg-green-900/80 text-green-200 border border-green-700 {% endif %}
+                            {% if category == 'info' %} bg-blue-900/80 text-blue-200 border border-blue-700 {% endif %}
+                            {% if category == 'danger' %} bg-red-900/80 text-red-200 border border-red-700 {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <h3 class="text-xl text-blue-300 mb-4">Assign New Doctor</h3>
+                    <form method="POST" class="space-y-4">
+                        <input type="hidden" name="action" value="assign">
+                        <input type="hidden" name="entity" value="assignment">
+                        <div>
+                            <label class="block text-gray-300 mb-2">Select Patient</label>
+                            <select name="patient_id" class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                <option value="">-- Select Patient --</option>
+                                {% for patient in patients %}
+                                    <option value="{{ patient.patient_id }}">{{ patient.name }} ({{ patient.patient_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Select Doctor</label>
+                            <select name="doctor_id" class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                <option value="">-- Select Doctor --</option>
+                                {% for doctor in doctors %}
+                                    <option value="{{ doctor.doctor_id }}">{{ doctor.name }} ({{ doctor.doctor_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 hover:shadow-[0_0_10px_rgba(147,51,234,0.5)] transition-all duration-300">
+                            Assign Doctor
+                        </button>
+                    </form>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <h3 class="text-xl text-blue-300 mb-4">Current Assignments</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-600">
+                                    <th class="p-3 border-b border-gray-500 text-blue-300">Doctor</th>
+                                    <th class="p-3 border-b border-gray-500 text-blue-300">Patient</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if assignments %}
+                                    {% for assignment in assignments %}
+                                        <tr class="hover:bg-gray-600 transition-colors duration-200">
+                                            <td class="p-3 border-b border-gray-500">{{ assignment.doctor_name }} ({{ assignment.doctor_id }})</td>
+                                            <td class="p-3 border-b border-gray-500">{{ assignment.patient_name }} ({{ assignment.patient_id }})</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="2" class="p-3 text-center text-gray-400">No assignments found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Doctor Request Section -->
+        <section id="doctor-request" class="section hidden bg-gray-800 p-6 rounded-xl shadow-xl">
+            <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Doctor Requests</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="p-4 mb-6 rounded-lg text-center font-medium
+                            {% if category == 'success' %} bg-green-900/80 text-green-200 border border-green-700 {% endif %}
+                            {% if category == 'info' %} bg-blue-900/80 text-blue-200 border border-blue-700 {% endif %}
+                            {% if category == 'danger' %} bg-red-900/80 text-red-200 border border-red-700 {% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-700">
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Doctor</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Patient</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Status</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Decryption Key</th>
+                            <th class="p-3 border-b border-gray-600 text-blue-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if doctor_requests %}
+                            {% for request in doctor_requests %}
+                                <tr class="hover:bg-gray-700 transition-colors duration-200">
+                                    <td class="p-3 border-b border-gray-600">{{ request.doctor_name }} ({{ request.doctor_id }})</td>
+                                    <td class="p-3 border-b border-gray-600">{{ request.patient_name }} ({{ request.patient_id }})</td>
+                                    <td class="p-3 border-b border-gray-600">
+                                        <span class="font-semibold {% if request.status == 'pending' %} text-yellow-400 {% elif request.status == 'accepted' %} text-green-400 {% else %} text-red-400 {% endif %}">
+                                            {{ request.status|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td class="p-3 border-b border-gray-600">
+                                        {% if request.decryption_key %}
+                                            <span class="bg-gray-600 px-2 py-1 rounded text-sm text-purple-300 break-all">{{ request.decryption_key[:15] }}...</span>
+                                        {% else %}
+                                            <span class="text-gray-400">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="p-3 border-b border-gray-600 flex space-x-2">
+                                        {% if request.status == 'pending' %}
+                                            <form method="POST" class="inline">
+                                                <input type="hidden" name="entity" value="doctor_request">
+                                                <input type="hidden" name="request_id" value="{{ request.id }}">
+                                                <input type="hidden" name="action" value="accept">
+                                                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 hover:shadow-[0_0_10px_rgba(34,197,94,0.5)] transition-all duration-300">
+                                                    Accept
+                                                </button>
+                                            </form>
+                                            <form method="POST" class="inline">
+                                                <input type="hidden" name="entity" value="doctor_request">
+                                                <input type="hidden" name="request_id" value="{{ request.id }}">
+                                                <input type="hidden" name="action" value="reject">
+                                                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)] transition-all duration-300">
+                                                    Reject
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="p-3 text-center text-gray-400">No doctor requests found</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Graph Section -->
+        <section id="graph" class="section hidden bg-gray-800 p-6 rounded-xl shadow-xl">
+            <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Analytics Dashboard</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    {{ pie_graph | safe }}
+                </div>
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    {{ bar_graph | safe }}
+                </div>
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    {{ line_graph | safe }}
+                </div>
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    {{ dp_graph | safe }}
+                </div>
+            </div>
+        </section>
     </div>
+
+    <!-- JavaScript -->
+    <script>
+        const loader = document.getElementById('loader');
+
+        // Show loader initially and hide when page fully loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.addEventListener('load', () => {
+                loader.classList.add('hidden');
+                typeText(); // Start typing animation after loader hides
+            });
+            showSection('home');
+        });
+
+        function showSection(sectionId) {
+            loader.classList.remove('hidden'); // Show loader
+            setTimeout(() => { // Simulate loading delay (adjust as needed)
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.add('hidden');
+                    section.classList.remove('active');
+                });
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    link.classList.remove('active');
+                });
+                const section = document.getElementById(sectionId);
+                section.classList.remove('hidden');
+                section.classList.add('active');
+                event.target.classList.add('active');
+                loader.classList.add('hidden'); // Hide loader after section switch
+            }, 500); // Simulated delay for section switch
+        }
+
+        function showEditForm(entity, id, name, email, phone, extra) {
+            document.querySelectorAll('[id^="edit-form-"]').forEach(form => {
+                form.classList.add('hidden');
+            });
+            const formId = `edit-form-${entity}-${id}`;
+            const form = document.getElementById(formId);
+            if (form) {
+                form.classList.remove('hidden');
+            }
+        }
+
+        function hideEditForm(entity, id) {
+            const formId = `edit-form-${entity}-${id}`;
+            const form = document.getElementById(formId);
+            if (form) {
+                form.classList.add('hidden');
+            }
+        }
+
+        function copyToClipboard(text) {
+            if (text && text !== 'None') {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Decryption key copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            }
+        }
+
+        // Handle form submissions with loader
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', () => {
+                loader.classList.remove('hidden'); // Show loader on form submit
+            });
+        });
+
+        // Handle logout link
+        document.querySelector('a[href="{{ url_for("auth.logout") }}"]').addEventListener('click', () => {
+            loader.classList.remove('hidden'); // Show loader on logout
+        });
+    </script>
 </body>
 </html>

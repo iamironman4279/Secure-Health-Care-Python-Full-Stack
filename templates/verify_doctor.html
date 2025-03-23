@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Doctor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto max-w-md p-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-semibold text-blue-900 mb-4">Verify Doctor</h2>
+            <form method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Doctor ID</label>
+                    <input type="text" name="doctor_id" 
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                           required>
+                </div>
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+                    Verify Doctor
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {% if show_popup %}
+    <div class="popup-overlay" id="popupOverlay"></div>
+    <div class="popup" id="popupCard">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-blue-900">Verification Result</h3>
+            <button onclick="closePopup()" class="text-gray-500 hover:text-gray-700">&times;</button>
+        </div>
+        <p class="{% if 'successfully' in verification_result %}text-green-600{% else %}text-red-600{% endif %}">
+            {{ verification_result }}
+        </p>
+    </div>
+    <script>
+        document.getElementById('popupOverlay').style.display = 'block';
+        document.getElementById('popupCard').style.display = 'block';
+        
+        function closePopup() {
+            document.getElementById('popupOverlay').style.display = 'none';
+            document.getElementById('popupCard').style.display = 'none';
+        }
+    </script>
+    {% endif %}
+</body>
+</html>

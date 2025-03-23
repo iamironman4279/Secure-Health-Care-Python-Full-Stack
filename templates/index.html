@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block head %}
+    <!-- Add Lottie player script if not already in base.html -->
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+    <style>
+        /* Loader styles */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <!-- Loading Animation (50% size: 150px x 150px) -->
+    <div id="loader">
+        <dotlottie-player 
+            src="https://lottie.host/d7c0ef6c-ab8e-4878-8616-f715dde2daa3/rHYriJxVCS.lottie" 
+            background="transparent" 
+            speed="1" 
+            style="width: 150px; height: 150px" 
+            loop 
+            autoplay>
+        </dotlottie-player>
+    </div>
+
+    <section class="bg-gray-800 p-6 rounded-xl shadow-xl relative overflow-hidden min-h-screen">
+        <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted>
+            <source src="{{ url_for('static', filename='animation.mp4') }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="absolute top-10 left-1/2 transform -translate-x-1/2 p-4">
+            <div class="bg-gray-900 bg-opacity-50 backdrop-blur-md p-6 rounded-lg text-center max-w-2xl">
+                <p id="animatedText" class="text-lg text-purple-400 leading-relaxed"></p>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+{% block scripts %}
+<script>
+    const loader = document.getElementById('loader');
+    
+    // Hide loader when page fully loads and start typing animation
+    document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('load', () => {
+            loader.classList.add('hidden');
+            typeText(); // Start typing animation after loader hides
+        });
+    });
+
+    const text = "Empowering healthcare through secure and innovative technology. We enable seamless access to patient records, enhance medical collaboration, and ensure data privacy for better, faster, and smarter healthcare solutions worldwide.";
+    const textElement = document.getElementById("animatedText");
+    let index = 0;
+    function typeText() {
+        if (index < text.length) {
+            textElement.innerHTML += text.charAt(index);
+            index++;
+            setTimeout(typeText, 70);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pharmacy Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+    <style>
+        @keyframes glow {
+            0% { text-shadow: 0 0 5px rgba(147, 51, 234, 0.5); }
+            50% { text-shadow: 0 0 15px rgba(147, 51, 234, 0.8), 0 0 25px rgba(147, 51, 234, 0.6); }
+            100% { text-shadow: 0 0 5px rgba(147, 51, 234, 0.5); }
+        }
+        .nav-link:hover {
+            animation: glow 1.5s infinite;
+        }
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 0 20px rgba(147, 51, 234, 0.2);
+        }
+        .neon-gradient {
+            background: linear-gradient(45deg, #9333ea, #06b6d4, #d8b4fe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .chart-box {
+            padding: 2rem;
+            border-radius: 1.5rem;
+            height: 500px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+        /* Loader styles */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Loading Animation (50% size: 150px x 150px) -->
+    <div id="loader">
+        <dotlottie-player 
+            src="https://lottie.host/8d3cb698-3668-4c41-925b-21f6a829123f/zUil8iitNE.lottie" 
+            background="transparent" 
+            speed="1" 
+            style="width: 150px; height: 150px" 
+            loop 
+            autoplay>
+        </dotlottie-player>
+    </div>
+
+    <nav class="bg-gray-800 p-4 flex flex-wrap justify-between items-center shadow-lg">
+        <div class="flex space-x-4">
+            <a href="{{ url_for('pharmacy.pharmacy_dashboard') }}" class="nav-link text-blue-300 hover:text-purple-400 transition-colors duration-300 font-semibold">Home</a>
+            <a href="#inventory" class="nav-link text-blue-300 hover:text-purple-400 transition-colors duration-300 font-semibold">Inventory</a>
+            <a href="#add-medicine" class="nav-link text-blue-300 hover:text-purple-400 transition-colors duration-300 font-semibold">Add Medicine</a>
+            <a href="#orders" class="nav-link text-blue-300 hover:text-purple-400 transition-colors duration-300 font-semibold">Orders</a>
+            <a href="#verify-signatures" class="nav-link text-blue-300 hover:text-purple-400 transition-colors duration-300 font-semibold">Verify Signatures</a>
+            <a href="#dashboard" class="nav-link text-blue-300 hover:text-purple-400 transition-colors duration-300 font-semibold">Dashboard</a>
+        </div>
+        <a href="{{ url_for('pharmacy.pharmacy_logout') }}" class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition duration-300">Logout</a>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Pharmacy Info -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-xl mb-8 glassmorphism">
+            <h2 class="text-2xl font-serif text-purple-400 mb-4 neon-gradient">Welcome, {{ pharmacy.name }}</h2>
+            <p><strong>Pharmacy ID:</strong> {{ pharmacy.pharmacy_id }}</p>
+            <p><strong>Email:</strong> {{ pharmacy.email }}</p>
+            <p><strong>Phone:</strong> {{ pharmacy.phone }}</p>
+            <p><strong>Address:</strong> {{ pharmacy.address }}</p>
+            <p><strong>License Number:</strong> {{ pharmacy.license_number }}</p>
+        </div>
+
+        <!-- Add New Medicine -->
+        <section id="add-medicine" class="mb-12">
+            <h3 class="text-xl font-bold text-purple-400 font-serif mb-4 neon-gradient">Add New Medicine</h3>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-xl glassmorphism">
+                <form method="POST" class="space-y-4">
+                    <input type="hidden" name="action" value="add_new_medicine">
+                    <div>
+                        <label class="block text-gray-300 mb-2">Medicine Name</label>
+                        <input type="text" name="name" class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2">Brand</label>
+                        <input type="text" name="brand" class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2">Price (₹)</label>
+                        <input type="number" name="price" min="0" step="0.01" class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-2">Stock Quantity</label>
+                        <input type="number" name="stock_quantity" min="1" class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500" required>
+                    </div>
+                    <button type="submit" class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-all duration-300">Add Medicine</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Inventory -->
+        <section id="inventory" class="mb-12">
+            <h3 class="text-xl font-bold text-purple-400 font-serif mb-4 neon-gradient">Inventory</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full bg-gray-800 rounded-lg shadow-xl glassmorphism">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="p-3 text-left text-blue-300">Medicine Name</th>
+                            <th class="p-3 text-left text-blue-300">Brand</th>
+                            <th class="p-3 text-left text-blue-300">Price</th>
+                            <th class="p-3 text-left text-blue-300">Stock Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if inventory %}
+                            {% for item in inventory %}
+                                <tr class="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200">
+                                    <td class="p-3">{{ item.name }}</td>
+                                    <td class="p-3">{{ item.brand }}</td>
+                                    <td class="p-3">₹{{ item.price|float|round(2) }}</td>
+                                    <td class="p-3">{{ item.stock_quantity }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="p-3 text-center">No inventory found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Patient Orders -->
+        <section id="orders" class="mb-12">
+            <h3 class="text-xl font-bold text-purple-400 font-serif mb-4 neon-gradient">Patient Orders</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full bg-gray-800 rounded-lg shadow-xl glassmorphism">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="p-3 text-left text-blue-300">Order ID</th>
+                            <th class="p-3 text-left text-blue-300">Patient Name</th>
+                            <th class="p-3 text-left text-blue-300">Medicine</th>
+                            <th class="p-3 text-left text-blue-300">Dosage</th>
+                            <th class="p-3 text-left text-blue-300">Amount</th>
+                            <th class="p-3 text-left text-blue-300">Status</th>
+                            <th class="p-3 text-left text-blue-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if orders %}
+                            {% for order in orders %}
+                                <tr class="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200">
+                                    <td class="p-3">{{ order.pharmacy_order_id }}</td>
+                                    <td class="p-3">{{ order.patient_name or 'Unknown' }}</td>
+                                    <td class="p-3">{{ order.medicine_name or 'Unknown' }}</td>
+                                    <td class="p-3">{{ order.dosage or 'N/A' }} for {{ order.duration or 'N/A' }}</td>
+                                    <td class="p-3">₹{{ order.total_amount|float|round(2) }}</td>
+                                    <td class="p-3">
+                                        <span class="inline-block px-2 py-1 rounded-full text-sm font-bold
+                                            {% if order.status == 'Delivered' %}bg-green-900 text-green-400{% endif %}
+                                            {% if order.status == 'Cancelled' %}bg-red-900 text-red-400{% endif %}
+                                            {% if order.status == 'Pending' %}bg-yellow-900 text-yellow-400{% endif %}
+                                            {% if order.status == 'Processing' %}bg-blue-900 text-blue-400{% endif %}
+                                            {% if order.status == 'Shipped' %}bg-purple-900 text-purple-400{% endif %}
+                                            {% if order.status == 'Verified' %}bg-teal-900 text-teal-400{% endif %}">
+                                            {{ order.status }}
+                                        </span>
+                                    </td>
+                                    <td class="p-3">
+                                        <form method="POST" class="flex space-x-2">
+                                            <input type="hidden" name="action" value="update_order_status">
+                                            <input type="hidden" name="order_id" value="{{ order.pharmacy_order_id }}">
+                                            <select name="status" class="p-1 bg-gray-600 border border-gray-500 rounded-lg text-gray-100">
+                                                <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
+                                                <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                                <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                                <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                            </select>
+                                            <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded-md hover:bg-blue-600 transition duration-300">Update</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="p-3 text-center">No orders found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Signature Verification -->
+        <section id="verify-signatures" class="mb-12">
+            <h3 class="text-xl font-bold text-purple-400 font-serif mb-4 neon-gradient">Verify Prescription Signatures</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full bg-gray-800 rounded-lg shadow-xl glassmorphism">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="p-3 text-left text-blue-300">Order ID</th>
+                            <th class="p-3 text-left text-blue-300">Patient Name</th>
+                            <th class="p-3 text-left text-blue-300">Medicine</th>
+                            <th class="p-3 text-left text-blue-300">Dosage</th>
+                            <th class="p-3 text-left text-blue-300">Status</th>
+                            <th class="p-3 text-left text-blue-300">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if orders %}
+                            {% for order in orders %}
+                                {% if order.status == 'Pending' or order.status == 'Filled' %}
+                                    <tr class="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200">
+                                        <td class="p-3">{{ order.pharmacy_order_id }}</td>
+                                        <td class="p-3">{{ order.patient_name or 'Unknown' }}</td>
+                                        <td class="p-3">{{ order.medicine_name or 'N/A' }}</td>
+                                        <td class="p-3">{{ order.dosage or 'N/A' }} for {{ order.duration or 'N/A' }}</td>
+                                        <td class="p-3">
+                                            <span class="inline-block px-2 py-1 rounded-full text-sm font-bold
+                                                {% if order.status == 'Pending' %}bg-yellow-900 text-yellow-400{% endif %}
+                                                {% if order.status == 'Filled' %}bg-blue-900 text-blue-400{% endif %}">
+                                                {{ order.status }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3">
+                                            <form method="POST" class="inline">
+                                                <input type="hidden" name="action" value="verify_prescription">
+                                                <input type="hidden" name="prescription_id" value="{{ order.prescription_id }}">
+                                                <button type="submit" class="bg-purple-500 text-white px-2 py-1 rounded-md hover:bg-purple-600 transition duration-300">Verify Signature</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="p-3 text-center">No pending orders to verify.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Futuristic Dashboard -->
+        <section id="dashboard" class="mb-12">
+            <h3 class="text-xl font-bold text-purple-400 font-serif mb-4 neon-gradient">Analytics Dashboard</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-gray-800 chart-box glassmorphism">
+                    <h4 class="text-lg font-semibold text-cyan-400 mb-4">Stock Availability (%)</h4>
+                    <canvas id="circularProgressChart" class="chart-container"></canvas>
+                </div>
+                <div class="bg-gray-800 chart-box glassmorphism">
+                    <h4 class="text-lg font-semibold text-cyan-400 mb-4">Monthly Sales (₹)</h4>
+                    <canvas id="barChart" class="chart-container"></canvas>
+                </div>
+                <div class="bg-gray-800 chart-box glassmorphism">
+                    <h4 class="text-lg font-semibold text-cyan-400 mb-4">Order Trends (Count)</h4>
+                    <canvas id="areaChart" class="chart-container"></canvas>
+                </div>
+                <div class="bg-gray-800 chart-box glassmorphism">
+                    <h4 class="text-lg font-semibold text-cyan-400 mb-4">Revenue Streams (₹)</h4>
+                    <canvas id="multiLineChart" class="chart-container"></canvas>
+                </div>
+                <div class="bg-gray-800 chart-box glassmorphism">
+                    <h4 class="text-lg font-semibold text-cyan-400 mb-4">Medicine Categories (% Sold)</h4>
+                    <canvas id="segmentedCircularChart" class="chart-container"></canvas>
+                </div>
+                <div class="bg-gray-800 chart-box glassmorphism">
+                    <h4 class="text-lg font-semibold text-cyan-400 mb-4">Order Fulfillment Rate (%)</h4>
+                    <canvas id="gaugeChart" class="chart-container"></canvas>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- JavaScript for Loader and Charts -->
+    <script>
+        const loader = document.getElementById('loader');
+
+        // Hide loader when page fully loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.addEventListener('load', () => {
+                loader.classList.add('hidden');
+            });
+        });
+
+        // Show loader on form submissions
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', () => {
+                loader.classList.remove('hidden');
+            });
+        });
+
+        // Show loader on navigation links (except in-page anchors)
+        document.querySelectorAll('a[href]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (href && !href.startsWith('#')) { // Exclude anchor links
+                    e.preventDefault();
+                    loader.classList.remove('hidden');
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 500); // 500ms delay to show loader
+                }
+            });
+        });
+
+        // Chart Data and Initialization
+        const chartData = {
+            stockAvailability: {{ stock_availability|default(0)|tojson|safe }},
+            monthlySalesLabels: {{ monthly_sales_labels|default(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])|tojson|safe }},
+            monthlySalesData: {{ monthly_sales_data|default([0,0,0,0,0,0,0,0,0,0,0,0])|tojson|safe }},
+            orderTrendsLabels: {{ order_trends_labels|default(['Week 1', 'Week 2', 'Week 3', 'Week 4'])|tojson|safe }},
+            orderTrendsData: {{ order_trends_data|default([0,0,0,0])|tojson|safe }},
+            revenueStreamsLabels: {{ revenue_streams_labels|default(['Jan', 'Feb', 'Mar', 'Apr', 'May'])|tojson|safe }},
+            revenueStreamsOnline: {{ revenue_streams_online|default([0,0,0,0,0])|tojson|safe }},
+            revenueStreamsInstore: {{ revenue_streams_instore|default([0,0,0,0,0])|tojson|safe }},
+            revenueStreamsDelivery: {{ revenue_streams_delivery|default([0,0,0,0,0])|tojson|safe }},
+            medicineCategoriesLabels: {{ medicine_categories_labels|default(['Painkillers', 'Antibiotics', 'Vitamins'])|tojson|safe }},
+            medicineCategoriesData: {{ medicine_categories_data|default([0,0,0])|tojson|safe }},
+            fulfillmentRate: {{ fulfillment_rate|default(0)|tojson|safe }}
+        };
+
+        // Circular Progress Chart (Stock Availability)
+        const circularProgressCtx = document.getElementById('circularProgressChart').getContext('2d');
+        new Chart(circularProgressCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [chartData.stockAvailability, 100 - chartData.stockAvailability],
+                    backgroundColor: ['#9333ea', '#1f2937'],
+                    borderWidth: 0,
+                    borderRadius: 20,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Bar Chart (Monthly Sales)
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: chartData.monthlySalesLabels,
+                datasets: [{
+                    label: 'Sales',
+                    data: chartData.monthlySalesData,
+                    backgroundColor: 'rgba(147, 51, 234, 0.8)',
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' } } }
+            }
+        });
+
+        // Area Chart (Order Trends)
+        const areaCtx = document.getElementById('areaChart').getContext('2d');
+        new Chart(areaCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.orderTrendsLabels,
+                datasets: [{
+                    label: 'Orders',
+                    data: chartData.orderTrendsData,
+                    fill: true,
+                    backgroundColor: 'rgba(147, 51, 234, 0.3)',
+                    borderColor: '#9333ea',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' } } }
+            }
+        });
+
+        // Multi-Line Chart (Revenue Streams)
+        const multiLineCtx = document.getElementById('multiLineChart').getContext('2d');
+        new Chart(multiLineCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.revenueStreamsLabels,
+                datasets: [
+                    { label: 'Online', data: chartData.revenueStreamsOnline, borderColor: '#9333ea', tension: 0.4 },
+                    { label: 'In-Store', data: chartData.revenueStreamsInstore, borderColor: '#06b6d4', tension: 0.4 },
+                    { label: 'Delivery', data: chartData.revenueStreamsDelivery, borderColor: '#d8b4fe', tension: 0.4 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' } } }
+            }
+        });
+
+        // Segmented Circular Chart (Medicine Categories)
+        const segmentedCircularCtx = document.getElementById('segmentedCircularChart').getContext('2d');
+        new Chart(segmentedCircularCtx, {
+            type: 'doughnut',
+            data: {
+                labels: chartData.medicineCategoriesLabels,
+                datasets: [{
+                    data: chartData.medicineCategoriesData,
+                    backgroundColor: ['#9333ea', '#06b6d4', '#d8b4fe'],
+                    borderWidth: 0,
+                    borderRadius: 20
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: '#d8b4fe' } } }
+            }
+        });
+
+        // Gauge Chart (Order Fulfillment Rate)
+        const gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
+        new Chart(gaugeCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [chartData.fulfillmentRate, 100 - chartData.fulfillmentRate],
+                    backgroundColor: ['#9333ea', '#1f2937'],
+                    borderWidth: 0,
+                    cutout: '80%',
+                    circumference: 180,
+                    rotation: 270
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body> 
+</html>
