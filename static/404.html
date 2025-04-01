@@ -25,16 +25,16 @@
         }
 
         .four_zero_four_bg {
-            background: url('/static/bg.gif');
+            background: url('./bg.gif'); /* Exactly as you provided */
             height: 400px;
             background-position: center;
-            position: relative;
+            position: relative; /* Added for layering */
         }
 
         h1 {
             font-size: 80px;
-            position: relative;
-            z-index: 1;
+            position: relative; /* Keep text above image */
+            z-index: 1; /* Ensure text is on top */
         }
 
         h3 {
@@ -66,7 +66,7 @@
                <div class="col-sm-12">
                    <div class="col-sm-10 col-sm-offset-1 text-center">
                        <div class="four_zero_four_bg">
-                           
+                           <img src="./bg.gif" alt="404 Background" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;">
                            <h1 class="text-center">404</h1>
                        </div>
                        <div class="content_box_404">

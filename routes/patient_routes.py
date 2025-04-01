@@ -108,11 +108,9 @@ def upload():
         encrypted_data = aes.encrypt(data)
 
         cursor.execute("""
-            INSERT INTO medical_records (patient_id, encrypted_data, blood_group, 
-                                      blood_pressure, body_temp, pulse_rate, previous_medications)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (patient['patient_id'], encrypted_data, blood_group, blood_pressure,
-              body_temp, pulse_rate, medications))
+            INSERT INTO medical_records (patient_id, encrypted_data)
+            VALUES (%s, %s)
+        """, (patient['patient_id'], encrypted_data))
         mysql.connection.commit()
         cursor.close()
 
@@ -130,8 +128,7 @@ def decrypt_key():
     if 'loggedin' in session:
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('''
-            SELECT patient_id, blood_group, blood_pressure, body_temp, pulse_rate, 
-                   previous_medications, updated_time, encrypted_data
+            SELECT id, patient_id, encrypted_data, updated_time
             FROM medical_records
             WHERE patient_id = %s
         ''', (session['patient_id'],))
@@ -192,13 +189,9 @@ def decrypt_key():
 
                 cursor.execute('''
                     UPDATE medical_records 
-                    SET blood_group = %s, blood_pressure = %s, body_temp = %s, 
-                        pulse_rate = %s, previous_medications = %s, 
-                        encrypted_data = %s, updated_time = NOW()
+                    SET encrypted_data = %s, updated_time = NOW()
                     WHERE patient_id = %s AND encrypted_data = %s
-                ''', (blood_group, blood_pressure, body_temp, pulse_rate, 
-                      medications, new_encrypted_data, session['patient_id'], 
-                      base64.b64decode(encrypted_key)))
+                ''', (new_encrypted_data, session['patient_id'], base64.b64decode(encrypted_key)))
                 
                 mysql.connection.commit()
                 cursor.close()
@@ -322,7 +315,6 @@ def medical_history_pdf():
 
     verified_prescriptions = []
     for pr in prescriptions:
-        # Ensure medicine_id is explicitly selected
         prescription_message = f"{pr['doctor_id']}|{session['patient_id']}|{pr['medicine_id']}|{pr['dosage']}|{pr['duration']}|{pr.get('instructions', 'None')}"
         if verify_signature(pr['public_key'], prescription_message, pr['signature']):
             verified_prescriptions.append(pr)

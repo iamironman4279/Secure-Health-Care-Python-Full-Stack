@@ -3,7 +3,13 @@
 {% block content %}
 <section class="bg-gray-800 p-6 rounded-xl shadow-xl">
     <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Manage Patients</h2>
-    <h3 class="text-xl text-blue-300 mb-4">All Patients</h3>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="p-4 mb-4 text-{{ category }}-100 bg-{{ category }}-900 rounded">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
@@ -26,7 +32,7 @@
                     <td class="p-3 border-b border-gray-600">{{ patient.address }}</td>
                     <td class="p-3 border-b border-gray-600 flex space-x-2">
                         <button onclick="showEditForm('patient', '{{ patient.patient_id }}', '{{ patient.name }}', '{{ patient.email }}', '{{ patient.phone }}', '{{ patient.address }}')" 
-                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:shadow-[0_0_10px_rgba(59,130,246,0.5)] transition-all duration-300">
+                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300">
                             Edit
                         </button>
                         <form method="POST" class="inline">
@@ -34,10 +40,14 @@
                             <input type="hidden" name="entity" value="patient">
                             <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
                             <button type="submit" onclick="return confirm('Are you sure you want to delete this patient?');" 
-                                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)] transition-all duration-300">
+                                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-300">
                                 Delete
                             </button>
                         </form>
+                        <a href="{{ url_for('cloud.backup_patient', patient_id=patient.patient_id) }}"
+                           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-300">
+                            Backup
+                        </a>
                     </td>
                 </tr>
                 <tr id="edit-form-patient-{{ patient.patient_id }}" class="hidden bg-gray-700">
@@ -48,13 +58,13 @@
                             <input type="hidden" name="patient_id" value="{{ patient.patient_id }}">
                             <div class="flex space-x-4">
                                 <input type="text" name="name" value="{{ patient.name }}" placeholder="Name" required 
-                                       class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                       class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100">
                                 <input type="email" name="email" value="{{ patient.email }}" placeholder="Email" required 
-                                       class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                       class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100">
                                 <input type="text" name="phone" value="{{ patient.phone }}" placeholder="Phone" required 
-                                       class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                       class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100">
                                 <input type="text" name="address" value="{{ patient.address }}" placeholder="Address" 
-                                       class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                                       class="w-1/5 p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100">
                                 <div class="flex space-x-2">
                                     <button type="submit" 
                                             class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-all duration-300">

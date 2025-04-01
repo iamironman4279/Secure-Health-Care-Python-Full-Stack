@@ -12,7 +12,7 @@ appointment_bp = Blueprint('appointment', __name__)
 
 # Global variable to store dependency
 db = None
-UPI_GATEWAY_API_KEY = "eb8414ec-1f13-4c8f-b713-ae55fbc94a97"
+UPI_GATEWAY_API_KEY = "8c7c99fe-3f9a-4dbb-a07c-561bdb2e00b3"
 UPI_GATEWAY_CREATE_ORDER_URL = "https://api.ekqr.in/api/create_order"
 UPI_GATEWAY_CHECK_STATUS_URL = "https://api.ekqr.in/api/check_order_status"
 

@@ -1,41 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Assign Doctors{% endblock %}
 {% block head %}
-    <!-- Add Lottie player script if not already in base.html -->
-    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
-    <style>
-        /* Loader styles */
-        #loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.3s ease;
-        }
-        #loader.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-    </style>
+   
 {% endblock %}
 {% block content %}
-    <!-- Loading Animation (50% size: 150px x 150px) -->
-    <div id="loader">
-        <dotlottie-player 
-            src="https://lottie.host/d7c0ef6c-ab8e-4878-8616-f715dde2daa3/rHYriJxVCS.lottie" 
-            background="transparent" 
-            speed="1" 
-            style="width: 150px; height: 150px" 
-            loop 
-            autoplay>
-        </dotlottie-player>
-    </div>
+
 
     <section class="bg-gray-800 p-6 rounded-xl shadow-xl">
         <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Assign Doctors</h2>
@@ -98,22 +67,5 @@
         </div>
     </section>
 
-    <!-- JavaScript -->
-    <script>
-        const loader = document.getElementById('loader');
-
-        // Hide loader when page fully loads
-        document.addEventListener('DOMContentLoaded', () => {
-            window.addEventListener('load', () => {
-                loader.classList.add('hidden');
-            });
-        });
-
-        // Show loader on form submission
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', () => {
-                loader.classList.remove('hidden');
-            });
-        });
-    </script>
+    
 {% endblock %}

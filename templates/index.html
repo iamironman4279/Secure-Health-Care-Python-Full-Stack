@@ -1,42 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block head %}
-    <!-- Add Lottie player script if not already in base.html -->
-    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
     <style>
-        /* Loader styles */
-        #loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.3s ease;
-        }
-        #loader.hidden {
-            opacity: 0;
-            pointer-events: none;
+        /* Adding some basic styles to ensure visibility */
+        .text-purple-400 {
+            color: #c084fc; /* Explicit color definition */
         }
     </style>
 {% endblock %}
 {% block content %}
-    <!-- Loading Animation (50% size: 150px x 150px) -->
-    <div id="loader">
-        <dotlottie-player 
-            src="https://lottie.host/d7c0ef6c-ab8e-4878-8616-f715dde2daa3/rHYriJxVCS.lottie" 
-            background="transparent" 
-            speed="1" 
-            style="width: 150px; height: 150px" 
-            loop 
-            autoplay>
-        </dotlottie-player>
-    </div>
-
     <section class="bg-gray-800 p-6 rounded-xl shadow-xl relative overflow-hidden min-h-screen">
         <video class="absolute top-0 left-0 w-full h-full object-cover" autoplay loop muted>
             <source src="{{ url_for('static', filename='animation.mp4') }}" type="video/mp4">
@@ -50,26 +22,27 @@
     </section>
 {% endblock %}
 {% block scripts %}
-<script>
-    const loader = document.getElementById('loader');
-    
-    // Hide loader when page fully loads and start typing animation
-    document.addEventListener('DOMContentLoaded', () => {
-        window.addEventListener('load', () => {
-            loader.classList.add('hidden');
-            typeText(); // Start typing animation after loader hides
+    <script>
+        // Remove loader reference since it's not in the template
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start typing animation immediately after DOM is loaded
+            typeText();
         });
-    });
 
-    const text = "Empowering healthcare through secure and innovative technology. We enable seamless access to patient records, enhance medical collaboration, and ensure data privacy for better, faster, and smarter healthcare solutions worldwide.";
-    const textElement = document.getElementById("animatedText");
-    let index = 0;
-    function typeText() {
-        if (index < text.length) {
-            textElement.innerHTML += text.charAt(index);
-            index++;
-            setTimeout(typeText, 70);
+        const text = "Empowering healthcare through secure and innovative technology. We enable seamless access to patient records, enhance medical collaboration, and ensure data privacy for better, faster, and smarter healthcare solutions worldwide.";
+        const textElement = document.getElementById("animatedText");
+        let index = 0;
+
+        function typeText() {
+            if (!textElement) {
+                console.error('animatedText element not found');
+                return;
+            }
+            if (index < text.length) {
+                textElement.innerHTML += text.charAt(index);
+                index++;
+                setTimeout(typeText, 70);
+            }
         }
-    }
-</script>
+    </script>
 {% endblock %}

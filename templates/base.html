@@ -8,6 +8,18 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex">
+    <!-- Loader -->
+    <div id="loader" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <dotlottie-player 
+            src="https://lottie.host/d7c0ef6c-ab8e-4878-8616-f715dde2daa3/rHYriJxVCS.lottie" 
+            background="transparent" 
+            speed="1" 
+            style="width: 150px; height: 150px" 
+            loop 
+            autoplay>
+        </dotlottie-player>
+    </div>
+
     <!-- Sidebar Navigation -->
     <div class="fixed w-64 h-full bg-gray-800 shadow-xl p-6 flex flex-col">
         <div class="nav-links space-y-4 mt-6">
@@ -20,6 +32,7 @@
             <a href="{{ url_for('cloud.assign_doctors') }}" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300 {% if request.endpoint == 'cloud.assign_doctors' %}active{% endif %}">Assign Doctors</a>
             <a href="{{ url_for('cloud.doctor_request') }}" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300 {% if request.endpoint == 'cloud.doctor_request' %}active{% endif %}">Doctor Request</a>
             <a href="{{ url_for('cloud.graph') }}" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300 {% if request.endpoint == 'cloud.graph' %}active{% endif %}">Graph</a>
+            <a href="{{ url_for('cloud.decrypt_backup') }}" class="block py-2.5 px-4 text-blue-300 hover:text-purple-400 hover:bg-gray-700 rounded-lg transition-all duration-300 {% if request.endpoint == 'cloud.decrypt_backup' %}active{% endif %}">Decrypt Backup</a>
         </div>
         <a href="{{ url_for('auth.logout') }}" class="mt-auto mb-4 bg-purple-600 text-white py-2.5 px-4 rounded-lg font-semibold hover:bg-purple-700 hover:shadow-[0_0_15px_rgba(159,122,234,0.7)] transition-all duration-300 text-center">Logout</a>
     </div>
@@ -41,6 +54,59 @@
         {% block content %}{% endblock %}
     </div>
 
+    <!-- Loader Scripts -->
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+    <script>
+        const loader = document.getElementById('loader');
+        let isNavigating = false;
+
+        // Show loader on initial page load
+        window.addEventListener('beforeunload', () => {
+            if (isNavigating) {
+                loader.classList.remove('hidden');
+            }
+        });
+
+        // Hide loader when page is fully loaded
+        window.addEventListener('load', () => {
+            loader.classList.add('hidden');
+            isNavigating = false;
+        });
+
+        // Handle navigation link clicks
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (link.classList.contains('active')) {
+                    return; // Don't show loader for current page
+                }
+                
+                e.preventDefault();
+                isNavigating = true;
+                loader.classList.remove('hidden');
+                setTimeout(() => {
+                    window.location.href = link.href;
+                }, 500);
+            });
+        });
+
+        // Handle browser back/forward navigation
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                loader.classList.add('hidden');
+                isNavigating = false;
+            }
+        });
+
+        // Handle form submissions
+        document.addEventListener('submit', (e) => {
+            const form = e.target;
+            if (form.method.toLowerCase() === 'post') {
+                isNavigating = true;
+                loader.classList.remove('hidden');
+            }
+        });
+    </script>
+    
     {% block scripts %}{% endblock %}
 </body>
 </html>

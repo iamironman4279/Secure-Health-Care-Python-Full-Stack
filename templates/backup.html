@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backup Confirmation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 p-6 rounded-xl shadow-xl max-w-md w-full">
+        <h2 class="text-2xl text-purple-400 font-serif mb-4 border-b-2 border-purple-500 pb-2">Backup Data</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 mb-6 rounded-lg text-center font-medium
+                        {% if category == 'success' %} bg-green-900/80 text-green-200 border border-green-700 {% endif %}
+                        {% if category == 'danger' %} bg-red-900/80 text-red-200 border border-red-700 {% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <p class="text-gray-300 mb-4">Are you sure you want to backup all data to MongoDB?</p>
+        <form method="POST" class="flex space-x-4">
+            <button type="submit" class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-all duration-300">
+                Yes, Backup Now
+            </button>
+            <a href="{{ url_for('cloud.index') }}" class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-all duration-300">
+                Cancel
+            </a>
+        </form>
+    </div>
+</body>
+</html>

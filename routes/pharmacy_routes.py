@@ -21,7 +21,7 @@ pharmacy_bp = Blueprint('pharmacy', __name__)
 
 db = None
 
-UPI_GATEWAY_API_KEY = "eb8414ec-1f13-4c8f-b713-ae55fbc94a97"
+UPI_GATEWAY_API_KEY = "8c7c99fe-3f9a-4dbb-a07c-561bdb2e00b3"
 UPI_GATEWAY_CREATE_ORDER_URL = "https://api.ekqr.in/api/create_order"
 UPI_GATEWAY_CHECK_STATUS_URL = "https://api.ekqr.in/api/check_order_status"
 
@@ -31,17 +31,34 @@ def init_pharmacy(mysql):
     return pharmacy_bp
 
 def verify_signature(public_key_pem, data, signature):
-    public_key = serialization.load_pem_public_key(public_key_pem.encode('utf-8'))
     try:
+        if not public_key_pem or not data or not signature:
+            print("Missing required inputs for signature verification")
+            return False
+        
+        public_key = serialization.load_pem_public_key(public_key_pem.encode('utf-8'))
+        signature_bytes = base64.b64decode(signature.strip())
+        
         public_key.verify(
-            base64.b64decode(signature),
+            signature_bytes,
             data.encode('utf-8'),
             padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH),
             hashes.SHA256()
         )
+        print("Signature verification successful")
         return True
+    
+    except ValueError as ve:
+        print(f"Signature verification failed - ValueError: {str(ve)}")
+        if "base64" in str(ve).lower():
+            print("Likely cause: Signature is not valid Base64")
+        return False
     except Exception as e:
-        print(f"Signature verification failed: {str(e)}")
+        print(f"Signature verification failed - Exception: {str(e)}")
+        if "invalid signature" in str(e).lower():
+            print("Likely cause: Signature does not match the data")
+        elif "padding" in str(e).lower():
+            print("Likely cause: Padding issue in signature")
         return False
 
 @pharmacy_bp.route('/pharmacy', methods=['GET'])
@@ -115,7 +132,13 @@ def create_pharmacy_order():
             flash('Invalid or unavailable prescription', 'danger')
             return redirect(url_for('pharmacy.pharmacy'))
         
-        prescription_message = f"{prescription['doctor_id']}|{session['patient_id']}|{prescription['medicine_id']}|{prescription['dosage']}|{prescription['duration']}|{prescription.get('instructions', 'None')}"
+        instructions = prescription['instructions'] if prescription['instructions'] is not None else 'None'
+        appointment_id = prescription['appointment_id'] if prescription['appointment_id'] is not None else 'None'
+        prescription_message = f"{prescription['doctor_id']}|{session['patient_id']}|{appointment_id}|{prescription['medicine_id']}|{prescription['dosage']}|{prescription['duration']}|{instructions}"
+        print(f"Prescription message to verify: {prescription_message}")
+        print(f"Signature from DB: {prescription['signature']}")
+        print(f"Public key from DB: {prescription['public_key']}")
+        
         if not verify_signature(prescription['public_key'], prescription_message, prescription['signature']):
             flash('Prescription signature verification failed', 'danger')
             return redirect(url_for('pharmacy.pharmacy'))
@@ -235,11 +258,11 @@ def check_pharmacy_payment():
                           order['patient_id'],
                           order['amount'],
                           session.get('address', 'Default Address'),
-                          'Pending'))
+                          'Pending'))  # Only 'Pending' is valid here per ENUM
                     
                     cursor.execute("""
                         UPDATE prescriptions 
-                        SET status = 'Filled' 
+                        SET status = 'Verified'  -- Changed from 'Filled' to align with ENUM
                         WHERE prescription_id = %s
                     """, (order['prescription_id'],))
                     
@@ -346,8 +369,13 @@ def pharmacy_dashboard():
         if action == 'add_new_medicine':
             name = request.form.get('name')
             brand = request.form.get('brand')
-            price = float(request.form.get('price'))
-            stock_quantity = int(request.form.get('stock_quantity'))
+            try:
+                price = float(request.form.get('price'))
+                stock_quantity = int(request.form.get('stock_quantity'))
+            except (ValueError, TypeError):
+                flash("Invalid price or stock quantity.", "danger")
+                return redirect(url_for('pharmacy.pharmacy_dashboard'))
+            
             cursor.execute("SELECT medicine_id FROM medicines WHERE name = %s AND brand = %s", (name, brand))
             medicine = cursor.fetchone()
             if not medicine:
@@ -362,19 +390,37 @@ def pharmacy_dashboard():
             """, (session['pharmacy_id'], medicine_id, stock_quantity, stock_quantity))
             db.connection.commit()
             flash("Medicine added successfully!", "success")
+        
         elif action == 'update_order_status':
             order_id = request.form.get('order_id')
-            status = request.form.get('status')
-            cursor.execute("UPDATE pharmacy_orders SET status = %s WHERE pharmacy_order_id = %s AND pharmacy_id = %s",
-                          (status, order_id, session['pharmacy_id']))
-            db.connection.commit()
-            flash("Order status updated!", "success")
+            status = request.form.get('status', '').strip()
+            valid_statuses = ['Pending', 'Filled', 'Cancelled','delivered','verified']  #'status', 'enum(\'\',\'\',\'\',\'\',\'\')', 'YES', '', 'Pending', ''
+
+            if status not in valid_statuses:
+                flash("Invalid status selected.", "danger")
+                return redirect(url_for('pharmacy.pharmacy_dashboard'))
+            try:
+                cursor.execute("UPDATE pharmacy_orders SET status = %s WHERE pharmacy_order_id = %s AND pharmacy_id = %s",
+                              (status, order_id, session['pharmacy_id']))
+                db.connection.commit()
+                flash("Order status updated!", "success")
+            except MySQLdb.DataError as e:
+                db.connection.rollback()
+                flash("Error updating status. Please contact support.", "danger")
+                print(f"Failed to update status: {status} - Error: {str(e)}")
+        
         elif action == 'verify_prescription':
             prescription_id = request.form.get('prescription_id')
-            cursor.execute("UPDATE pharmacy_orders SET status = 'Verified' WHERE prescription_id = %s AND pharmacy_id = %s",
-                          (prescription_id, session['pharmacy_id']))
-            db.connection.commit()
-            flash("Prescription verified!", "success")
+            try:
+                cursor.execute("UPDATE pharmacy_orders SET status = 'Verified' WHERE prescription_id = %s AND pharmacy_id = %s",
+                              (prescription_id, session['pharmacy_id']))
+                db.connection.commit()
+                flash("Prescription verified!", "success")
+            except MySQLdb.DataError as e:
+                db.connection.rollback()
+                flash("Error verifying prescription. Please contact support.", "danger")
+                print(f"Failed to verify prescription - Error: {str(e)}")
+        
         return redirect(url_for('pharmacy.pharmacy_dashboard'))
     
     cursor.execute("SELECT * FROM pharmacies WHERE pharmacy_id = %s", (session['pharmacy_id'],))
@@ -446,16 +492,16 @@ def pharmacy_dashboard():
     """, (session['pharmacy_id'],))
     revenue_data = cursor.fetchall()
     revenue_streams_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May']
-    revenue_streams_online = [0] * 5
-    revenue_streams_instore = [0] * 5
-    revenue_streams_delivery = [0] * 5
+    revenue_streams_pending = [0] * 5
+    revenue_streams_verified = [0] * 5
+    revenue_streams_delivered = [0] * 5
     for i in range(min(5, len(revenue_data))):
-        if revenue_data[i]['status'] in ['Pending', 'Processing']:
-            revenue_streams_online[i] = float(revenue_data[i]['revenue'] or 0)
-        elif revenue_data[i]['status'] == 'Shipped':
-            revenue_streams_instore[i] = float(revenue_data[i]['revenue'] or 0)
+        if revenue_data[i]['status'] == 'Pending':
+            revenue_streams_pending[i] = float(revenue_data[i]['revenue'] or 0)
+        elif revenue_data[i]['status'] == 'Verified':
+            revenue_streams_verified[i] = float(revenue_data[i]['revenue'] or 0)
         elif revenue_data[i]['status'] == 'Delivered':
-            revenue_streams_delivery[i] = float(revenue_data[i]['revenue'] or 0)
+            revenue_streams_delivered[i] = float(revenue_data[i]['revenue'] or 0)
 
     cursor.execute("""
         SELECT m.name, SUM(po.total_amount) as total_sold
@@ -476,8 +522,8 @@ def pharmacy_dashboard():
 
     cursor.execute("SELECT COUNT(*) as total_orders FROM pharmacy_orders WHERE pharmacy_id = %s", (session['pharmacy_id'],))
     total_orders = cursor.fetchone()['total_orders'] or 1
-    cursor.execute("SELECT COUNT(*) as delivered_orders FROM pharmacy_orders WHERE pharmacy_id = %s AND status = %s", 
-                   (session['pharmacy_id'], 'Delivered'))
+    cursor.execute("SELECT COUNT(*) as delivered_orders FROM pharmacy_orders WHERE pharmacy_id = %s AND status = 'Delivered'", 
+                   (session['pharmacy_id'],))
     delivered_orders = cursor.fetchone()['delivered_orders'] or 0
     fulfillment_rate = round((delivered_orders / total_orders) * 100)
 
@@ -494,9 +540,9 @@ def pharmacy_dashboard():
                          order_trends_labels=order_trends_labels,
                          order_trends_data=order_trends_data,
                          revenue_streams_labels=revenue_streams_labels,
-                         revenue_streams_online=revenue_streams_online,
-                         revenue_streams_instore=revenue_streams_instore,
-                         revenue_streams_delivery=revenue_streams_delivery,
+                         revenue_streams_pending=revenue_streams_pending,
+                         revenue_streams_verified=revenue_streams_verified,
+                         revenue_streams_delivered=revenue_streams_delivered,
                          medicine_categories_labels=medicine_categories_labels,
                          medicine_categories_data=medicine_categories_data,
                          fulfillment_rate=fulfillment_rate)
@@ -524,7 +570,7 @@ def generate_prescription_pdf(prescription_id):
     try:
         cursor.execute("""
             SELECT p.prescription_id, p.medicine_id, p.dosage, p.duration, p.instructions, p.prescribed_date,
-                   m.name as medicine_name, m.brand, m.price,
+                   p.appointment_id, m.name as medicine_name, m.brand, m.price,
                    d.name as doctor_name, d.doctor_id, d.public_key, p.signature,
                    pt.name as patient_name, pt.phone,
                    ph.name as pharmacy_name, ph.address
@@ -542,7 +588,13 @@ def generate_prescription_pdf(prescription_id):
             flash("Prescription not found or you don't have access", "danger")
             return redirect(url_for('patient.dashboard'))
         
-        prescription_message = f"{prescription['doctor_id']}|{session['patient_id']}|{prescription['medicine_id']}|{prescription['dosage']}|{prescription['duration']}|{prescription.get('instructions', 'None')}"
+        instructions = prescription['instructions'] if prescription['instructions'] is not None else 'None'
+        appointment_id = prescription['appointment_id'] if prescription['appointment_id'] is not None else 'None'
+        prescription_message = f"{prescription['doctor_id']}|{session['patient_id']}|{appointment_id}|{prescription['medicine_id']}|{prescription['dosage']}|{prescription['duration']}|{instructions}"
+        print(f"PDF - Prescription message to verify: {prescription_message}")
+        print(f"PDF - Signature from DB: {prescription['signature']}")
+        print(f"PDF - Public key from DB: {prescription['public_key']}")
+        
         if not verify_signature(prescription['public_key'], prescription_message, prescription['signature']):
             flash("Prescription signature verification failed", "danger")
             return redirect(url_for('patient.dashboard'))
