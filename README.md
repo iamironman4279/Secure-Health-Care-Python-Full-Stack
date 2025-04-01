@@ -61,7 +61,7 @@ Evaluated on **security strength**, **search efficiency**, and **system scalabil
 ## 🚀 Getting Started  
 ### Prerequisites  
 - ☁️ MongoDB Atlas account for cloud storage.  
-- 🐍 Python 3.8+ with libraries: `pycryptodome` (RSA/AES), `flask` or `django`, `pymongo`.  
+- 🐍 Python 3.8+ with libraries: `pycryptodome` (RSA/AES), `flask`, `pymongo`.  
 - 🔑 Encryption tools: OpenSSL or equivalent.  
 - 🌐 Web development setup (HTML/CSS/JS).  
 
