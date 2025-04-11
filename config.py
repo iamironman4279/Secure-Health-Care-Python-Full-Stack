@@ -1,7 +1,7 @@
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '4279',
+    'host': 'mysql.clmq8y0i6jx3.eu-north-1.rds.amazonaws.com',
+    'user': 'admin',
+    'password': 'Hemanth4279',
     'database': 'secure_patient_db'
 }
 
