@@ -69,4 +69,8 @@ Evaluated on **security strength**, **search efficiency**, and **system scalabil
 1. **Clone the Repository**:  
    ```bash
    git clone https://github.com/iamironman4279/Secure-Health-Care-Python-Full-Stack.git
+<<<<<<< HEAD
    cd Secure-Health-Care-Python-Full-Stack
+=======
+   cd Secure-Health-Care-Python-Full-Stack# E_Health_care
+>>>>>>> cf489139 (first commit)
