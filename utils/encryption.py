@@ -1,14 +1,17 @@
 from Crypto.Cipher import AES, PKCS1_OAEP
 from Crypto.PublicKey import RSA, DSA
-from Crypto.Random import get_random_bytes
 from Crypto.Signature import DSS
 from Crypto.Hash import SHA256
+from Crypto.Random import get_random_bytes
 import base64
+import hmac
+import hashlib
 
-# AES Encryption/Decryption
+
 class AESEncryption:
     def __init__(self, key):
-        self.key = key
+        self.key = key.encode('utf-8') if isinstance(key, str) else key
+        self.sse_key = get_random_bytes(32)  # Secret key for SSE tokens
 
     def encrypt(self, data):
         cipher = AES.new(self.key, AES.MODE_EAX)
@@ -23,6 +26,13 @@ class AESEncryption:
         cipher = AES.new(self.key, AES.MODE_EAX, nonce=nonce)
         return cipher.decrypt(ciphertext).decode('utf-8')
 
+    def generate_sse_token(self, value):
+        if not value:
+            return None
+        value_bytes = value.encode('utf-8')
+        token = hmac.new(self.sse_key, value_bytes, hashlib.sha256).hexdigest()
+        return token
+    
 # RSA Key Generation and Encryption
 class RSAEncryption:
     def __init__(self):

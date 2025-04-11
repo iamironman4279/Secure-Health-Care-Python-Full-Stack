@@ -49,7 +49,6 @@
             }
         }
 
-        /* Loader styles */
         #loader {
             position: fixed;
             top: 0;
@@ -70,7 +69,6 @@
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
-    <!-- Loading Animation (50% size: 150px x 150px) -->
     <div id="loader">
         <dotlottie-player 
             src="https://lottie.host/d7c0ef6c-ab8e-4878-8616-f715dde2daa3/rHYriJxVCS.lottie" 
@@ -157,11 +155,104 @@
             </div>
         </section>
 
-        <!-- Search Patients Placeholder -->
+        <!-- Search Patients Section -->
         <section id="search-patients" class="mb-12">
             <h3 class="text-xl font-bold text-purple-400 font-serif mb-4 fade-in">Search Patients</h3>
             <div class="bg-gray-800 p-6 rounded-lg shadow-xl fade-in">
-                <p class="text-gray-300">Search functionality to be implemented</p>
+                <form method="POST" class="space-y-4">
+                    <input type="hidden" name="action" value="search_patients">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-300 mb-2">Patient ID</label>
+                            <input type="text" name="patient_id" placeholder="Enter Patient ID" 
+                                   class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Name</label>
+                            <input type="text" name="name" placeholder="Enter Name" 
+                                   class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Contact</label>
+                            <input type="text" name="contact" placeholder="Enter Phone" 
+                                   class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">DOB (YYYY-MM-DD)</label>
+                            <input type="text" name="dob" placeholder="e.g., 2002-05-05" 
+                                   class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Blood Group</label>
+                            <input type="text" name="blood_group" placeholder="e.g., A+" 
+                                   class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Blood Pressure</label>
+                            <input type="text" name="blood_pressure" placeholder="e.g., 120/80" 
+                                   class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Body Temperature</label>
+                            <input type="text" name="body_temp" placeholder="e.g., 98.6" 
+                                   class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Pulse Rate</label>
+                            <input type="text" name="pulse_rate" placeholder="e.g., 72" 
+                                   class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500">
+                        </div>
+                    </div>
+                    <button type="submit" class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 hover:shadow-[0_0_10px_rgba(147,51,234,0.5)] transition-all duration-300">
+                        Search
+                    </button>
+                </form>
+
+                {% if search_results %}
+                    <div class="mt-6">
+                        <h4 class="text-lg text-blue-300 mb-2">Search Results</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full bg-gray-800 shadow-xl rounded-lg responsive-table">
+                                <thead class="bg-gray-700">
+                                    <tr>
+                                        <th class="p-3 text-left text-blue-300">Patient ID</th>
+                                        <th class="p-3 text-left text-blue-300">Name</th>
+                                        <th class="p-3 text-left text-blue-300">Contact</th>
+                                        <th class="p-3 text-left text-blue-300">DOB</th>
+                                        <th class="p-3 text-left text-blue-300">Blood Group</th>
+                                        <th class="p-3 text-left text-blue-300">Blood Pressure</th>
+                                        <th class="p-3 text-left text-blue-300">Body Temp</th>
+                                        <th class="p-3 text-left text-blue-300">Pulse Rate</th>
+                                        <th class="p-3 text-left text-blue-300">Previous Medications</th>
+                                        <th class="p-3 text-left text-blue-300">Updated Time</th>
+                                        <th class="p-3 text-left text-blue-300">Matched Fields</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for result in search_results %}
+                                        <tr class="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200">
+                                            <td class="p-3" data-label="Patient ID">{{ result.patient_id }}</td>
+                                            <td class="p-3" data-label="Name">{{ result.name }}</td>
+                                            <td class="p-3" data-label="Contact">{{ result.contact or 'N/A' }}</td>
+                                            <td class="p-3" data-label="DOB">{{ result.dob or 'N/A' }}</td>
+                                            <td class="p-3" data-label="Blood Group">{{ result.blood_group }}</td>
+                                            <td class="p-3" data-label="Blood Pressure">{{ result.blood_pressure }}</td>
+                                            <td class="p-3" data-label="Body Temp">{{ result.body_temp }}</td>
+                                            <td class="p-3" data-label="Pulse Rate">{{ result.pulse_rate }}</td>
+                                            <td class="p-3" data-label="Previous Medications">{{ result.previous_medications or 'N/A' }}</td>
+                                            <td class="p-3" data-label="Updated Time">{{ result.updated_time or 'N/A' }}</td>
+                                            <td class="p-3" data-label="Matched Fields">
+                                                {% for field in result.matched_fields %}
+                                                    <span class="block">{{ field }}</span>
+                                                {% endfor %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </section>
 
@@ -218,11 +309,110 @@
             </div>
         </section>
 
-        <!-- Shared Patients Placeholder -->
+        <!-- Shared Patients Section -->
         <section id="shared-patients" class="mb-12">
             <h3 class="text-xl font-bold text-purple-400 font-serif mb-4 fade-in">Shared Patients</h3>
             <div class="bg-gray-800 p-6 rounded-lg shadow-xl fade-in">
-                <p class="text-gray-300">Shared patients list to be implemented</p>
+                <!-- Share Patient Form -->
+                <h4 class="text-lg text-blue-300 mb-4">Share a Patient</h4>
+                <form method="POST" class="space-y-4 mb-6">
+                    <input type="hidden" name="action" value="share_patient">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-300 mb-2">Select Patient</label>
+                            <select name="patient_id" class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500" required>
+                                <option value="">-- Select Patient --</option>
+                                {% for patient in all_patients %}
+                                    <option value="{{ patient.patient_id }}">{{ patient.name }} ({{ patient.patient_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-300 mb-2">Select Doctor</label>
+                            <select name="to_doctor_id" class="w-full p-2 bg-gray-600 border border-gray-500 rounded-lg text-gray-100 focus:outline-none focus:border-purple-500" required>
+                                <option value="">-- Select Doctor --</option>
+                                {% for doctor in all_doctors %}
+                                    <option value="{{ doctor.doctor_id }}">{{ doctor.name }} ({{ doctor.doctor_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 hover:shadow-[0_0_10px_rgba(147,51,234,0.5)] transition-all duration-300">
+                        Share Patient
+                    </button>
+                </form>
+
+                <!-- Shared Patients List -->
+                <h4 class="text-lg text-blue-300 mb-4">Accepted Shared Patients</h4>
+                <div class="overflow-x-auto mb-6">
+                    <table class="w-full bg-gray-800 shadow-xl rounded-lg responsive-table">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-3 text-left text-blue-300">From Doctor</th>
+                                <th class="p-3 text-left text-blue-300">Patient ID</th>
+                                <th class="p-3 text-left text-blue-300">Patient Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if shared_patients %}
+                                {% for share in shared_patients %}
+                                    <tr class="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200">
+                                        <td class="p-3" data-label="From Doctor">{{ share.from_doctor_name }} ({{ share.from_doctor_id }})</td>
+                                        <td class="p-3" data-label="Patient ID">{{ share.patient_id }}</td>
+                                        <td class="p-3" data-label="Patient Name">{{ share.patient_name }}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="3" class="p-3 text-center">No shared patients yet.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pending Share Requests -->
+                <h4 class="text-lg text-blue-300 mb-4">Pending Share Requests</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full bg-gray-800 shadow-xl rounded-lg responsive-table">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th class="p-3 text-left text-blue-300">From Doctor</th>
+                                <th class="p-3 text-left text-blue-300">Patient ID</th>
+                                <th class="p-3 text-left text-blue-300">Patient Name</th>
+                                <th class="p-3 text-left text-blue-300">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if pending_shares %}
+                                {% for share in pending_shares %}
+                                    <tr class="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200">
+                                        <td class="p-3" data-label="From Doctor">{{ share.from_doctor_name }} ({{ share.from_doctor_id }})</td>
+                                        <td class="p-3" data-label="Patient ID">{{ share.patient_id }}</td>
+                                        <td class="p-3" data-label="Patient Name">{{ share.patient_name }}</td>
+                                        <td class="p-3" data-label="Actions">
+                                            <form method="POST" class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                                                <input type="hidden" name="share_id" value="{{ share.id }}">
+                                                <button type="submit" name="action" value="accept_share" 
+                                                        class="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 transition duration-300">
+                                                    Accept
+                                                </button>
+                                                <button type="submit" name="action" value="reject_share" 
+                                                        class="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition duration-300">
+                                                    Reject
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="p-3 text-center">No pending share requests.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -479,57 +669,23 @@
             </select>
             <button type="submit" class="mt-2 bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600">Assign</button>
         </form>
-
-        <form method="POST" class="mb-4 fade-in">
-            <input type="hidden" name="action" value="create_prescription">
-            <label for="patient_id" class="block text-gray-300">Patient:</label>
-            <select name="patient_id" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100">
-                {% for patient in all_patients %}
-                    <option value="{{ patient.patient_id }}">{{ patient.name }}</option>
-                {% endfor %}
-            </select>
-            <label for="medicine_id" class="block text-gray-300">Medicine:</label>
-            <select name="medicine_id" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100">
-                {% for medicine in medicines %}
-                    <option value="{{ medicine.medicine_id }}">{{ medicine.name }} ({{ medicine.brand }})</option>
-                {% endfor %}
-            </select>
-            <label for="dosage" class="block text-gray-300">Dosage:</label>
-            <input type="text" name="dosage" required class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100">
-            <label for="duration" class="block text-gray-300">Duration:</label>
-            <input type="text" name="duration" required class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100">
-            <label for="instructions" class="block text-gray-300">Instructions:</label>
-            <textarea name="instructions" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100"></textarea>
-            <label for="appointment_id" class="block text-gray-300">Appointment ID (optional):</label>
-            <input type="text" name="appointment_id" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-gray-100">
-            <button type="submit" class="mt-2 bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600">Create Prescription</button>
-        </form>
     </div>
 
-    <!-- JavaScript -->
     <script>
         const loader = document.getElementById('loader');
-
-        // Hide loader when page fully loads
         document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('load', () => {
                 loader.classList.add('hidden');
             });
         });
-
-        // Show loader on form submission
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', () => {
                 loader.classList.remove('hidden');
             });
         });
-
-        // Show loader on logout
         document.querySelector('a[href="{{ url_for("doctor.doctor_logout") }}"]').addEventListener('click', () => {
             loader.classList.remove('hidden');
         });
-
-        // Copy to clipboard functionality
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 alert('Decryption key copied to clipboard!');

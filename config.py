@@ -6,7 +6,7 @@ DB_CONFIG = {
 }
 
 # 🔑 AES Secret Key
-AES_SECRET_KEY = bytes.fromhex('1c09e94c774261bad417ea8ac1d54226')  # 16 bytes for AES-128
+AES_SECRET_KEY = bytes.fromhex('1c09e94c774261bad417ea8ac1d54226')
 
 # 🔐 RSA Key Configurations
 RSA_KEY_SIZE = 2048

@@ -38,7 +38,7 @@ CREATE TABLE `appointments` (
   KEY `appointments_ibfk_2` (`doctor_id`),
   CONSTRAINT `appointments_ibfk_1` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`),
   CONSTRAINT `appointments_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`doctor_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,7 +47,7 @@ CREATE TABLE `appointments` (
 
 LOCK TABLES `appointments` WRITE;
 /*!40000 ALTER TABLE `appointments` DISABLE KEYS */;
-INSERT INTO `appointments` VALUES (16,'PID727785','DD704318','2025-03-13','00:03:00','gh','Confirmed','2025-03-12 18:31:19','7ba06e8b4aa140c0937cde923d27e64d','67d033309bdf7');
+INSERT INTO `appointments` VALUES (24,'PID660834','DD039523','2025-03-26','16:53:00','fever','Confirmed','2025-03-26 11:20:37','864e1e9690b2413bb358cb1235a28a67','f25c283021');
 /*!40000 ALTER TABLE `appointments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -93,6 +93,7 @@ CREATE TABLE `doctor_patient` (
   `doctor_id` varchar(50) NOT NULL,
   `patient_id` varchar(50) NOT NULL,
   `status` varchar(20) DEFAULT 'active',
+  `signature` text,
   PRIMARY KEY (`doctor_id`,`patient_id`),
   KEY `patient_id` (`patient_id`),
   CONSTRAINT `doctor_patient_ibfk_1` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`doctor_id`),
@@ -106,7 +107,6 @@ CREATE TABLE `doctor_patient` (
 
 LOCK TABLES `doctor_patient` WRITE;
 /*!40000 ALTER TABLE `doctor_patient` DISABLE KEYS */;
-INSERT INTO `doctor_patient` VALUES ('DD704318','PID727785','active'),('DD872507','PID584060','active'),('DD899380','PID584060','active'),('DD899380','PID727785','active');
 /*!40000 ALTER TABLE `doctor_patient` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -129,7 +129,7 @@ CREATE TABLE `doctor_requests` (
   KEY `patient_id` (`patient_id`),
   CONSTRAINT `doctor_requests_ibfk_1` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`doctor_id`),
   CONSTRAINT `doctor_requests_ibfk_2` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -138,7 +138,6 @@ CREATE TABLE `doctor_requests` (
 
 LOCK TABLES `doctor_requests` WRITE;
 /*!40000 ALTER TABLE `doctor_requests` DISABLE KEYS */;
-INSERT INTO `doctor_requests` VALUES (1,'DD872507','PID563224','accepted','706136c48b2d0d86f470fcc939689f0b','2025-03-13 07:49:47'),(2,'DD872507','PID727785','accepted','6a63fb57993981bdf231bfc8470f3bba','2025-03-13 07:50:55'),(3,'DD704318','PID584060','accepted','48c2598c3fb918568046ae46c34447d4','2025-03-13 08:01:05'),(4,'DD899380','PID563224','accepted','2743ee2f681f03ab1eb2d3aa1dbaeaee','2025-03-13 08:22:04'),(5,'DD704318','PID563224','accepted','MVFCdEVsSTFPVDNFdEtvQ05YLzBUVUd1T1M5bGlQcXlGVzAxUlRUeEhpS3RtcEVYdTdlMTQwRzlFM1V0MlhFaVF0a0QyUXk0VmV4aTdpeXhSeDZodWlXWFAxczhROGZUNTRyV1puUEIzNFZmajVBS09VQm4zZG1SdWg0bnNRaFg0aFd2eGdhd29MYkhjMnFGM0cvWUM0enRWbis1','2025-03-13 08:36:46'),(6,'DD704318','PID563224','accepted','MVFCdEVsSTFPVDNFdEtvQ05YLzBUVUd1T1M5bGlQcXlGVzAxUlRUeEhpS3RtcEVYdTdlMTQwRzlFM1V0MlhFaVF0a0QyUXk0VmV4aTdpeXhSeDZodWlXWFAxczhROGZUNTRyV1puUEIzNFZmajVBS09VQm4zZG1SdWg0bnNRaFg0aFd2eGdhd29MYkhjMnFGM0cvWUM0enRWbis1','2025-03-13 08:37:22'),(7,'DD704318','PID563224','rejected',NULL,'2025-03-13 08:39:18'),(8,'DD704318','PID563224','accepted','cENhcG8rREpuYkcrbFdVeVhFSW92dWV1U2JWWlZodWdXVW1Xd0tkOTkxRWdQT1NV','2025-03-13 08:39:45'),(9,'DD704318','PID563224','rejected',NULL,'2025-03-13 08:43:35'),(10,'DD704318','PID563224','accepted','cENhcG8rREpuYkcrbFdVeVhFSW92dWV1U2JWWlZodWdXVW1Xd0tkOTkxRWdQT1NV','2025-03-13 08:44:07'),(11,'DD704318','PID563224','accepted','MVFCdEVsSTFPVDNFdEtvQ05YLzBUVUd1T1M5bGlQcXlGVzAxUlRUeEhpS3RtcEVYdTdlMTQwRzlFM1V0MlhFaVF0a0QyUXk0VmV4aTdpeXhSeDZodWlXWFAxczhROGZUNTRyV1puUEIzNFZmajVBS09VQm4zZG1SdWg0bnNRaFg0aFd2eGdhd29MYkhjMnFGM0cvWUM0enRWbis1','2025-03-13 08:44:53'),(12,'DD704318','PID563224','accepted','MVFCdEVsSTFPVDNFdEtvQ05YLzBUVUd1T1M5bGlQcXlGVzAxUlRUeEhpS3RtcEVYdTdlMTQwRzlFM1V0MlhFaVF0a0QyUXk0VmV4aTdpeXhSeDZodWlXWFAxczhROGZUNTRyV1puUEIzNFZmajVBS09VQm4zZG1SdWg0bnNRaFg0aFd2eGdhd29MYkhjMnFGM0cvWUM0enRWbis1','2025-03-13 08:45:46'),(13,'DD704318','PID563224','accepted','MVFCdEVsSTFPVDNFdEtvQ05YLzBUVUd1T1M5bGlQcXlGVzAxUlRUeEhpS3RtcEVYdTdlMTQwRzlFM1V0MlhFaVF0a0QyUXk0VmV4aTdpeXhSeDZodWlXWFAxczhROGZUNTRyV1puUEIzNFZmajVBS09VQm4zZG1SdWg0bnNRaFg0aFd2eGdhd29MYkhjMnFGM0cvWUM0enRWbis1','2025-03-13 08:46:26'),(14,'DD704318','PID126228','rejected',NULL,'2025-03-13 08:53:44'),(15,'DD704318','PID126228','rejected',NULL,'2025-03-13 08:56:15'),(16,'DD704318','PID126228','rejected',NULL,'2025-03-13 08:56:20'),(17,'DD704318','PID126228','rejected',NULL,'2025-03-13 09:01:05'),(18,'DD704318','PID563224','accepted','MVFCdEVsSTFPVDNFdEtvQ05YLzBUVUd1T1M5bGlQcXlGVzAxUlRUeEhpS3RtcEVYdTdlMTQwRzlFM1V0MlhFaVF0a0QyUXk0VmV4aTdpeXhSeDZodWlXWFAxczhROGZUNTRyV1puUEIzNFZmajVBS09VQm4zZG1SdWg0bnNRaFg0aFd2eGdhd29MYkhjMnFGM0cvWUM0enRWbis1','2025-03-13 09:01:18'),(19,'DD704318','PID563224','rejected',NULL,'2025-03-13 09:02:04');
 /*!40000 ALTER TABLE `doctor_requests` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -159,11 +158,15 @@ CREATE TABLE `doctors` (
   `password` varchar(255) NOT NULL,
   `is_active` tinyint(1) DEFAULT '1',
   `is_activated` tinyint(1) DEFAULT '0',
+  `private_key` text NOT NULL,
+  `public_key` text NOT NULL,
+  `reset_token` varchar(100) DEFAULT NULL,
+  `token_expiry` datetime DEFAULT NULL,
   PRIMARY KEY (`doctor_id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `phone` (`phone`),
   UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -172,7 +175,7 @@ CREATE TABLE `doctors` (
 
 LOCK TABLES `doctors` WRITE;
 /*!40000 ALTER TABLE `doctors` DISABLE KEYS */;
-INSERT INTO `doctors` VALUES (23,'DD051303','drhemanth','vtu24064@veltech.edu.in','8125507026','heart','1234',1,1),(17,'DD704318','guduru Hemanth kumar reddy','hemanth42079@gmail.com','944186135','Cardiologist','1234',1,1),(21,'DD872507','vinnela','vinnela@gmail.com','9441861880','puls','1234',1,1),(22,'DD899380','peter','peter@gmail.com','8441861353','heart','1234',1,1),(20,'DD967641','pavani','pavani@gmail.com','9441861367','heart','1234',1,1);
+INSERT INTO `doctors` VALUES (28,'DD039523','guduru Hemanth kumar reddy','hemanth42079@gmail.com','9441861353','Cardiologist','1234567890',1,1,'-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDjRu+SVwd7O1ZB\n4T2fim83tVZ/rEjLb+lP24y2oXO+Q4TYg3amv2L+7rV7qf29Kgp7Rd3yGbvuqUTy\ng+ZU6LW0TpdNp7EGUpBL+bdmdqrow14L8xX2GexYzbVKl3MOQ6gkb4VF/hNKvUuK\nIISXInlnVPSGHUIp8SzeAlegaSlOzf82JxYPNGhCkNWGjysMQxYNZCcqfpLkMFCL\nDIIYLnXD1IfzdBRYRDA2qKNkvONldjhHPtNUGqmT6JGl2G6zE6y12yW8SYD5uhmU\n8CERWuQijjWhD9pQYol380DbuMEqKU5+xbznhTDmrTpnflbVHGpstD60uBrmX6Tr\n1lB0N28pAgMBAAECggEAEjUP/J1wocrg7Lz6bqCGRMrUyu+Zxh2i1EOJyn7oQp+U\n5RkX1UeGl71QPqYhbkxC5xmmxfFeOkItngjUPlmFZpQ+Ay0u8L6GhTLUVXOmQQ79\npsY3ksdq3rmQ3EPojLj9n5JrjwewTFyz0E7G/UPFJz9wEDQIPxhTq6MGZnkzCcP7\n2JIV+/BbbkziKaxvi4yx17AZfQFqAp+A961UODwtrDIFcpMl6nyvBG6ZBmNioFwF\nJdNxp1h6bv+z7mejPfIil2PWXvtqnrjBPI8YTjYpGJPPgtn1uKP/THfc7HI4mfuv\na6h7WfI8Lyr0OYdI47xvnLuFvGAPNRXszG8LfD5mbQKBgQD9hfteg2OuyCT04e1t\ndTbxlOzqbbjuT9IJPPA86ik2hQlF7R1ctnGrpvInhGRpwvfDJrtVqyOkhIVjlC4I\nf9AssDEfOaN8QTeVXXtYmkTqw+pZsYRkGOfp2SHgCxJug45WcvI0qmv3VPiQdXov\nDX1E1B4ponNRR8uIsqAD1MvKzwKBgQDlf1EHxlSLPbqkM8WZCktz8Md1XLgxsHfP\nTD47VP1XuV9FlZ2PrSn4AAGoy3dPbkUKzvBASoefoqzUnkqGYfeX8A1j+377JbRN\ncZxahA2DjIcgGWgcsXiKH67MRuBB2Q7aFL6QnUEGtljW2+6uOs5oWZ7nkFBLuUNr\nAxEb7TfEhwKBgEOgm98oWUzkYsdYBQevvspOmawnPK+FZ1fDg6ocJIZAkqquh6iV\nmljZnbrg3BBCS+koycwebNGT8CkR+/2UaqmhDllv/KZGl1cmqqKF9GBTho4KhnBV\nHHgKzbh/+5izSyLQYr+dvlMpvWx7ie5HQOU9WBZvGSfTaP27+GdNOleNAoGAMdAl\ntWtOFH8MkPGP1T0PzZWYpZe/f0GPb9Zbt6Ml7jGVRVRJQ9NRRbwyoAGx3vLPV549\nNac3suWrX+cPxAVlqXv4XBhNopO3hAvB5T++cyxAdC4vk/LNeCWSWlKUAJbti1Zv\nWpJXd+6Cb/iC4RxwiuPRAvAnDZij0oly4D3oGecCgYBRXix1B6DckPgFbdcZmCRd\nzbvyYWLYtCSRwxlIHt7i+mmY0tfRlywmr+o6IftF1spQ6F4yv+l5JBRseXDKnHFy\n7MtEc8qi0MAfNnpmrLSAb4UQICzEIWDAWMwmqTWGRTm2fPgc3H84OuesDEjLJDRj\n1AHMLZ3mHRyK3MVkfKfCIA==\n-----END PRIVATE KEY-----\n','-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA40bvklcHeztWQeE9n4pv\nN7VWf6xIy2/pT9uMtqFzvkOE2IN2pr9i/u61e6n9vSoKe0Xd8hm77qlE8oPmVOi1\ntE6XTaexBlKQS/m3Znaq6MNeC/MV9hnsWM21SpdzDkOoJG+FRf4TSr1LiiCElyJ5\nZ1T0hh1CKfEs3gJXoGkpTs3/NicWDzRoQpDVho8rDEMWDWQnKn6S5DBQiwyCGC51\nw9SH83QUWEQwNqijZLzjZXY4Rz7TVBqpk+iRpdhusxOstdslvEmA+boZlPAhEVrk\nIo41oQ/aUGKJd/NA27jBKilOfsW854Uw5q06Z35W1RxqbLQ+tLga5l+k69ZQdDdv\nKQIDAQAB\n-----END PUBLIC KEY-----\n','OtsCy0SBCL0Yt2jDbPgMFWIEkYjgzp0EYZaQnKmChKw','2025-04-11 00:04:31');
 /*!40000 ALTER TABLE `doctors` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -225,7 +228,7 @@ CREATE TABLE `medical_records` (
   `used` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`id`),
   KEY `patient_id` (`patient_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -234,7 +237,7 @@ CREATE TABLE `medical_records` (
 
 LOCK TABLES `medical_records` WRITE;
 /*!40000 ALTER TABLE `medical_records` DISABLE KEYS */;
-INSERT INTO `medical_records` VALUES (32,'PID727785','O+','120','96','140','no','2025-03-12 17:01:03','cwR5lH0F6zP5JDhNO2vl3R16uv+2AVSgvs2aUCGm3ts=',0),(33,'PID727785',NULL,NULL,NULL,NULL,NULL,'2025-03-12 17:00:46','zzxLMydAAMd3vmASDTXCY/R0iejw5kFcnEY9m6rY3sNb',0),(34,'PID584060','O+','120','80','dfgh','                                        bhji\r\n                                    ','2025-03-13 08:36:29','MydNC5iuwqiGmsh8MXYxmCkYU1EfKJ5BpFJgdFf6Nl180a2NstQkyXf2GiWixO5HwoRUjfV9QwYDhDgYcCel03NJKpSzADVZJjBYPu4iophOGID81tGGjvakQhBMsDlPpVyTm9fV4wr2ZAAETRU4xys=',0),(35,'PID563224','O+','120','80','140','                                        pavani no\r\n                                    ','2025-03-13 08:45:37','1QBtElI1OT3EtKoCNX/0TUGuOS9liPqyFW01RTTxHiKtmpEXu7e140G9E3Ut2XEiQtkD2Qy4Vexi7iyxRx6huiWXP1s8Q8fT54rWZnPB34Vfj5AKOUBn3dmRuh4nsQhX4hWvxgawoLbHc2qF3G/YC4ztVn+5',0);
+INSERT INTO `medical_records` VALUES (49,'PID660834',NULL,NULL,NULL,NULL,NULL,'2025-03-25 15:03:22','ztA/A2nYFjHcQzR/BhQJzta41De1SVF45/Btdwoh95E=',0);
 /*!40000 ALTER TABLE `medical_records` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -254,7 +257,7 @@ CREATE TABLE `medicines` (
   `expiry_date` date DEFAULT NULL,
   `description` text,
   PRIMARY KEY (`medicine_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -263,7 +266,7 @@ CREATE TABLE `medicines` (
 
 LOCK TABLES `medicines` WRITE;
 /*!40000 ALTER TABLE `medicines` DISABLE KEYS */;
-INSERT INTO `medicines` VALUES (1,'Paracetamol','Cipla','Painkiller',50.00,'2026-12-31','Used for fever and pain relief'),(2,'Ibuprofen','Sun Pharma','Painkiller',80.00,'2025-08-15','Anti-inflammatory medicine'),(3,'Amoxicillin','GSK','Antibiotic',120.00,'2027-06-20','Used to treat bacterial infections'),(4,'Cetirizine','Ranbaxy','Antihistamine',30.00,'2025-03-10','Used for allergies'),(5,'Metformin','Dr. Reddy\'s','Diabetes',150.00,'2027-09-01','Used for type 2 diabetes management');
+INSERT INTO `medicines` VALUES (1,'Paracetamol','Cipla','Painkiller',50.00,'2026-12-31','Used for fever and pain relief'),(2,'Ibuprofen','Sun Pharma','Painkiller',80.00,'2025-08-15','Anti-inflammatory medicine'),(3,'Amoxicillin','GSK','Antibiotic',120.00,'2027-06-20','Used to treat bacterial infections'),(4,'Cetirizine','Ranbaxy','Antihistamine',30.00,'2025-03-10','Used for allergies'),(5,'Metformin','Dr. Reddy\'s','Diabetes',150.00,'2027-09-01','Used for type 2 diabetes management'),(6,'Dolo 650','dolo',NULL,12.00,NULL,NULL),(7,'Dolo','dolo',NULL,12.00,NULL,NULL);
 /*!40000 ALTER TABLE `medicines` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -315,10 +318,12 @@ CREATE TABLE `patients` (
   `address` text,
   `is_activated` tinyint(1) DEFAULT '0',
   `patient_id` varchar(20) DEFAULT NULL,
+  `reset_token` varchar(100) DEFAULT NULL,
+  `token_expiry` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   KEY `patient_id` (`patient_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -327,8 +332,152 @@ CREATE TABLE `patients` (
 
 LOCK TABLES `patients` WRITE;
 /*!40000 ALTER TABLE `patients` DISABLE KEYS */;
-INSERT INTO `patients` VALUES (18,'guduru hemanth kumar reddy','9441861353','hemanth42079@gmail.com','2025-02-07','scrypt:32768:8:1$lpRq3ISYgLOp3yHO$6bdf3918de73af1b79867f34bc22ed12e20c8d0ab5326d0a8443a0e23430a9751c8043d48f2ed1e11241361689f49f59c57ffdd0bee211f359c57a1d9106a6c4','Thotla palle',1,'PID727785'),(20,'Jhon','0441861353','jhon@gmail.com','1983-03-10','scrypt:32768:8:1$JMFI0Pq9EnYjlYVs$997620ef0b14a97c8f29bbe8766b79d1324de5860abf965fde6742903fd47a00e34eb8dcf464b45c95b3df8c0e090e49c88865be82a59a0dc107e8b21f17d637','Thotla palle\r\nB. Mattam',1,'PID584060'),(21,'joe','2441861353','joe@gmail.com','2025-03-10','scrypt:32768:8:1$Y5WtFg5SQ6nmmfp7$810460776df6c96ad95e4f0c8b150942c2c8c5010b28c84654e6015342a3ce345547c318b4a3a5f37ee59921eca8815f79614cc58772c756093ddffd7594b045','dfcghjkl;',1,'PID317961'),(22,'pavani','9441861351','pavani@gmail.com','2004-08-03','scrypt:32768:8:1$yHD43UyAP78cQRxk$62091745069bdb9c64996d71174b415a38a7706b2cc274c17651154510d480455ac11757ef776d9634dc3e33a5f5729ab2f814cf71c40792915f442cadd0424f','garalladhinna',1,'PID563224'),(23,'joes','9441861534','joes@gmail.com','1999-03-04','scrypt:32768:8:1$Cyruf7nnjtVCUuN4$1bfd3f36dee902dcc7ef150c281f508f54052025ab0845e4c155b05dfad168e3dff4c527d6fe25fd23ca547b38614c3fee6a35253d779bbe41420eb3e729a5df','Mydukur',1,'PID126228'),(27,'hemanthrdj','8125507026','vtu24064@veltech.edu.in','2002-01-08','scrypt:32768:8:1$ZfbwHuo0LeZ10n6t$86b7f4915d854ab62781b349ca69ebf93851f70b612a5b9012c01756115ef8fd8b69d7100dd5dd5d0719d6115bc8db924afbc9c9b690a4c190bd3c162db9719e','Ramulavari street,somireddypalli\r\nBrahmam gari mattam mandal',1,'PID876944'),(28,'new hemanth','0812550702','hemanthrdj@gmail.com','2000-12-02','scrypt:32768:8:1$Lr06GxgTij18juBT$b106d964deec5327a781f26e3fc7fa9cbf50bfd8f2894aacb127462ef8d66b3c9b75df48182a066dd52b103352eb274395e91e8912a7fc6c893a8a242ab16251','new',1,'PID182964');
+INSERT INTO `patients` VALUES (29,'Guduru Hemanth kumar reddy','9441861353','hemanth42079@gmail.com','2003-02-15','scrypt:32768:8:1$pOBnwgiUqYI8t1ks$5541b8653eb2becaab6cf72d7b7f64e5be0b5dd19c3b46c525c9556b315652880becced4470b072dbaf6820c924bb632ddd848220d1fa7e7692c321193c418a8','Mydukura',1,'PID660834',NULL,NULL);
 /*!40000 ALTER TABLE `patients` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `pharmacies`
+--
+
+DROP TABLE IF EXISTS `pharmacies`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pharmacies` (
+  `pharmacy_id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `license_number` varchar(50) NOT NULL,
+  `address` text NOT NULL,
+  `phone` varchar(15) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `is_active` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `password` varchar(255) NOT NULL,
+  `reset_token` varchar(100) DEFAULT NULL,
+  `token_expiry` datetime DEFAULT NULL,
+  PRIMARY KEY (`pharmacy_id`),
+  UNIQUE KEY `license_number` (`license_number`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `phone` (`phone`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `pharmacies`
+--
+
+LOCK TABLES `pharmacies` WRITE;
+/*!40000 ALTER TABLE `pharmacies` DISABLE KEYS */;
+INSERT INTO `pharmacies` VALUES (1,'guduru Hemanth kumar hemanth kumar reddy','n1234','Thotla palle\r\nB. Mattam','9441861353','hemanth42079@gmail.com',1,'2025-03-15 03:57:07','scrypt:32768:8:1$LbqBOvqQ306LwDZT$bc305d9e17df85b974a5c616b331e4d0fd570ac1ee170aa9fa8c51585c8c5677568e9cda422471429582837104d7c3350429952b2304f148fb174e3289a7339f',NULL,NULL);
+/*!40000 ALTER TABLE `pharmacies` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `pharmacy_inventory`
+--
+
+DROP TABLE IF EXISTS `pharmacy_inventory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pharmacy_inventory` (
+  `inventory_id` int NOT NULL AUTO_INCREMENT,
+  `pharmacy_id` int NOT NULL,
+  `medicine_id` int NOT NULL,
+  `stock_quantity` int NOT NULL DEFAULT '0',
+  `last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`inventory_id`),
+  UNIQUE KEY `pharmacy_medicine_unique` (`pharmacy_id`,`medicine_id`),
+  KEY `medicine_id` (`medicine_id`),
+  CONSTRAINT `pharmacy_inventory_ibfk_1` FOREIGN KEY (`pharmacy_id`) REFERENCES `pharmacies` (`pharmacy_id`) ON DELETE CASCADE,
+  CONSTRAINT `pharmacy_inventory_ibfk_2` FOREIGN KEY (`medicine_id`) REFERENCES `medicines` (`medicine_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `pharmacy_inventory`
+--
+
+LOCK TABLES `pharmacy_inventory` WRITE;
+/*!40000 ALTER TABLE `pharmacy_inventory` DISABLE KEYS */;
+INSERT INTO `pharmacy_inventory` VALUES (1,1,3,0,'2025-03-25 16:05:03'),(3,1,4,3,'2025-03-15 04:30:09'),(7,1,1,10,'2025-03-16 04:20:53'),(8,1,2,0,'2025-03-25 15:56:20'),(9,1,5,4,'2025-03-15 13:21:07'),(12,1,6,0,'2025-03-25 16:29:53'),(13,1,7,1,'2025-03-26 11:22:17');
+/*!40000 ALTER TABLE `pharmacy_inventory` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `pharmacy_orders`
+--
+
+DROP TABLE IF EXISTS `pharmacy_orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pharmacy_orders` (
+  `pharmacy_order_id` int NOT NULL AUTO_INCREMENT,
+  `prescription_id` int NOT NULL,
+  `pharmacy_id` int NOT NULL,
+  `patient_id` varchar(50) NOT NULL,
+  `order_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `total_amount` decimal(10,2) NOT NULL,
+  `status` enum('Pending','Verified','Delivered','Processing','Shipped') DEFAULT NULL,
+  `delivery_address` text,
+  PRIMARY KEY (`pharmacy_order_id`),
+  KEY `prescription_id` (`prescription_id`),
+  KEY `pharmacy_id` (`pharmacy_id`),
+  KEY `patient_id` (`patient_id`),
+  CONSTRAINT `pharmacy_orders_ibfk_1` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`prescription_id`) ON DELETE CASCADE,
+  CONSTRAINT `pharmacy_orders_ibfk_2` FOREIGN KEY (`pharmacy_id`) REFERENCES `pharmacies` (`pharmacy_id`) ON DELETE CASCADE,
+  CONSTRAINT `pharmacy_orders_ibfk_3` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `pharmacy_orders`
+--
+
+LOCK TABLES `pharmacy_orders` WRITE;
+/*!40000 ALTER TABLE `pharmacy_orders` DISABLE KEYS */;
+INSERT INTO `pharmacy_orders` VALUES (18,38,1,'PID660834','2025-03-26 11:22:17',12.00,'Verified','Default Address');
+/*!40000 ALTER TABLE `pharmacy_orders` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `prescriptions`
+--
+
+DROP TABLE IF EXISTS `prescriptions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `prescriptions` (
+  `prescription_id` int NOT NULL AUTO_INCREMENT,
+  `appointment_id` int NOT NULL,
+  `doctor_id` varchar(50) NOT NULL,
+  `patient_id` varchar(50) NOT NULL,
+  `medicine_id` int NOT NULL,
+  `dosage` varchar(50) NOT NULL,
+  `duration` varchar(50) NOT NULL,
+  `instructions` text,
+  `signature` text NOT NULL,
+  `prescribed_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('Pending','Filled','Cancelled','verified','delivered') DEFAULT 'Pending',
+  PRIMARY KEY (`prescription_id`),
+  KEY `appointment_id` (`appointment_id`),
+  KEY `doctor_id` (`doctor_id`),
+  KEY `patient_id` (`patient_id`),
+  KEY `medicine_id` (`medicine_id`),
+  CONSTRAINT `prescriptions_ibfk_1` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`appointment_id`) ON DELETE CASCADE,
+  CONSTRAINT `prescriptions_ibfk_2` FOREIGN KEY (`doctor_id`) REFERENCES `doctors` (`doctor_id`) ON DELETE CASCADE,
+  CONSTRAINT `prescriptions_ibfk_3` FOREIGN KEY (`patient_id`) REFERENCES `patients` (`patient_id`) ON DELETE CASCADE,
+  CONSTRAINT `prescriptions_ibfk_4` FOREIGN KEY (`medicine_id`) REFERENCES `medicines` (`medicine_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `prescriptions`
+--
+
+LOCK TABLES `prescriptions` WRITE;
+/*!40000 ALTER TABLE `prescriptions` DISABLE KEYS */;
+INSERT INTO `prescriptions` VALUES (38,24,'DD039523','PID660834',7,'500','2','after meals','1u/e0vP+2EqrGe4DJUPeQS1/uzXD7KzG/8R1lYWzTHzCh99ytRaHc9Mpx/bVxba+eIDubzlI9byR0J2h9MqAWWfM4b8H16Qc4gkoaYgcvhtE4ruViPvBbTNBhhQ70RYLkZ1T+rOkkitdwcuoesHiJcxy9DPzC4T4qY5iHu0ou9+EgQ49HJC2kFeaVQydLjOsAwoEX8t9QuwNTRXggR0rnx5C99QSnMcDrB43G0Zt/8g9i0fbc8FkrL88I0QjCyY4iGBGY2Pkxa/tjW+lbKtsidzaAWw0uS8yyez3U2CzGwHJQr5pMOqGHYX430H7UQw3K9uJz/qkXQRS/TOnVCenlQ==','2025-03-26 11:21:43','verified');
+/*!40000 ALTER TABLE `prescriptions` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -372,4 +521,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-14 14:27:09
+-- Dump completed on 2025-04-11 15:20:02

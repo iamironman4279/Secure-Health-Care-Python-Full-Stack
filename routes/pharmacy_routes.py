@@ -6,8 +6,10 @@ import qrcode
 from io import BytesIO
 import base64
 from uuid import uuid4
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
+import secrets
+from mail import send_otp_email  # Import the function from mail.py
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization
@@ -50,15 +52,9 @@ def verify_signature(public_key_pem, data, signature):
     
     except ValueError as ve:
         print(f"Signature verification failed - ValueError: {str(ve)}")
-        if "base64" in str(ve).lower():
-            print("Likely cause: Signature is not valid Base64")
         return False
     except Exception as e:
         print(f"Signature verification failed - Exception: {str(e)}")
-        if "invalid signature" in str(e).lower():
-            print("Likely cause: Signature does not match the data")
-        elif "padding" in str(e).lower():
-            print("Likely cause: Padding issue in signature")
         return False
 
 @pharmacy_bp.route('/pharmacy', methods=['GET'])
@@ -258,11 +254,11 @@ def check_pharmacy_payment():
                           order['patient_id'],
                           order['amount'],
                           session.get('address', 'Default Address'),
-                          'Pending'))  # Only 'Pending' is valid here per ENUM
+                          'Pending'))
                     
                     cursor.execute("""
                         UPDATE prescriptions 
-                        SET status = 'Verified'  -- Changed from 'Filled' to align with ENUM
+                        SET status = 'Verified'
                         WHERE prescription_id = %s
                     """, (order['prescription_id'],))
                     
@@ -356,6 +352,85 @@ def pharmacy_register():
     
     return render_template('pharmacy_register.html')
 
+@pharmacy_bp.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if db is None:
+        flash("Database connection not initialized.", "danger")
+        return redirect(url_for('auth.home'))
+    
+    cursor = db.connection.cursor(MySQLdb.cursors.DictCursor)
+    if request.method == 'POST':
+        email = request.form['email']
+        
+        cursor.execute('SELECT * FROM pharmacies WHERE email = %s', (email,))
+        pharmacy = cursor.fetchone()
+        
+        if pharmacy:
+            reset_token = secrets.token_urlsafe(32)
+            expiry = datetime.now() + timedelta(hours=1)
+            
+            cursor.execute("""
+                UPDATE pharmacies 
+                SET reset_token = %s, token_expiry = %s 
+                WHERE email = %s
+            """, (reset_token, expiry, email))
+            db.connection.commit()
+            
+            reset_link = url_for('pharmacy.reset_password', token=reset_token, _external=True)
+            email_body = f"To reset your password, click this link: {reset_link}\nValid for 1 hour."
+            
+            if send_otp_email(email, email_body):
+                flash('Password reset link sent to your email.', 'success')
+            else:
+                flash('Failed to send reset email. Please try again.', 'danger')
+        else:
+            flash('Email not found in our records.', 'danger')
+        cursor.close()
+        return redirect(url_for('pharmacy.pharmacy_login'))
+        
+    cursor.close()
+    return render_template('pharmacy_login.html')
+
+@pharmacy_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if db is None:
+        flash("Database connection not initialized.", "danger")
+        return redirect(url_for('auth.home'))
+    
+    cursor = db.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("""
+        SELECT * FROM pharmacies 
+        WHERE reset_token = %s AND token_expiry > %s
+    """, (token, datetime.now()))
+    pharmacy = cursor.fetchone()
+    
+    if not pharmacy:
+        flash('Invalid or expired reset link.', 'danger')
+        cursor.close()
+        return redirect(url_for('pharmacy.pharmacy_login'))
+
+    if request.method == 'POST':
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return render_template('reset_password_phrm.html', token=token)
+            
+        hashed_password = generate_password_hash(password)
+        cursor.execute("""
+            UPDATE pharmacies 
+            SET password = %s, reset_token = NULL, token_expiry = NULL 
+            WHERE reset_token = %s
+        """, (hashed_password, token))
+        db.connection.commit()
+        flash('Password reset successfully.', 'success')
+        cursor.close()
+        return redirect(url_for('pharmacy.pharmacy_login'))
+    
+    cursor.close()
+    return render_template('reset_password_phrm.html', token=token)
+
 @pharmacy_bp.route('/pharmacy_dashboard', methods=['GET', 'POST'])
 def pharmacy_dashboard():
     if db is None or 'pharmacy_loggedin' not in session:
@@ -394,8 +469,8 @@ def pharmacy_dashboard():
         elif action == 'update_order_status':
             order_id = request.form.get('order_id')
             status = request.form.get('status', '').strip()
-            valid_statuses = ['Pending', 'Filled', 'Cancelled','delivered','verified']  #'status', 'enum(\'\',\'\',\'\',\'\',\'\')', 'YES', '', 'Pending', ''
-
+            valid_statuses = ['Pending', 'Filled', 'Cancelled', 'Delivered', 'Verified']
+            
             if status not in valid_statuses:
                 flash("Invalid status selected.", "danger")
                 return redirect(url_for('pharmacy.pharmacy_dashboard'))
@@ -436,14 +511,16 @@ def pharmacy_dashboard():
     
     cursor.execute("""
         SELECT po.pharmacy_order_id, po.total_amount, po.status, po.order_date,
-               pt.name as patient_name, pr.prescription_id, pr.medicine_id, pr.dosage, 
-               pr.duration, m.name as medicine_name
-        FROM pharmacy_orders po
-        LEFT JOIN prescriptions pr ON po.prescription_id = pr.prescription_id
-        LEFT JOIN patients pt ON po.patient_id = pt.patient_id
-        LEFT JOIN medicines m ON pr.medicine_id = m.medicine_id
-        WHERE po.pharmacy_id = %s
-        ORDER BY po.order_date DESC
+           pt.name as patient_name, pt.address as patient_address,
+           pr.prescription_id, pr.medicine_id, pr.dosage, pr.duration,
+           m.name as medicine_name, d.name as doctor_name
+    FROM pharmacy_orders po
+    LEFT JOIN prescriptions pr ON po.prescription_id = pr.prescription_id
+    LEFT JOIN patients pt ON po.patient_id = pt.patient_id
+    LEFT JOIN medicines m ON pr.medicine_id = m.medicine_id
+    LEFT JOIN doctors d ON pr.doctor_id = d.doctor_id
+    WHERE po.pharmacy_id = %s
+    ORDER BY po.order_date DESC
     """, (session['pharmacy_id'],))
     orders = cursor.fetchall()
     
